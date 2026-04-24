@@ -11,10 +11,10 @@ type Args = {
   }>
 }
 
-export const generateMetadata = ({ params, searchParams }: Args) =>
+export const generateMetadata = async ({ params, searchParams }: Args) =>
   generatePageMetadata({ config, params, searchParams })
 
-const Page = ({ params, searchParams }: Args) =>
+const Page = async ({ params, searchParams }: Args) =>
   RootPage({ config, importMap, params, searchParams })
 
 export default Page
