@@ -146,6 +146,10 @@ def is_heading_candidate(para) -> bool:
     # No debe parecer una referencia bibliográfica
     if re.match(r"^[A-Z][a-záéíóúñü]+ [A-Z]", text) and "." in text:
         return False
+    # "List Paragraph" sin indent y sin tamaño pequeño = título de subsección
+    # (el autor usa este estilo para los encabezados del índice y del cuerpo)
+    if para.style.name == "List Paragraph" and not is_indented(para):
+        return True
     return True
 
 def find_toc_entries(paragraphs) -> set:
@@ -298,8 +302,11 @@ def section_to_lexical(paras: list) -> dict:
 
         first = False
 
-        # Párrafo indentado o de tamaño 10pt → quote
-        if indented or (size and size <= 10.0):
+        # "List Paragraph" con indent = item de lista → párrafo indentado
+        if para.style.name == "List Paragraph" and indented:
+            nodes.append(paragraph_node(inline, indent=1))
+        # 10pt o indentado sin List Paragraph = cita/blockquote
+        elif (size and size <= 10.0) or (indented and para.style.name != "List Paragraph"):
             nodes.append(quote_node(inline))
         else:
             nodes.append(paragraph_node(inline))
