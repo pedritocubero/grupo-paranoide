@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Crimson_Pro, Inter } from 'next/font/google'
 import '../globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const crimsonPro = Crimson_Pro({
+  variable: '--font-serif',
   subsets: ['latin'],
+  weight: ['400', '600'],
+  style: ['normal', 'italic'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const inter = Inter({
+  variable: '--font-sans',
   subsets: ['latin'],
 })
 
@@ -19,8 +21,11 @@ export const metadata: Metadata = {
 
 export default function SiteLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html
+      lang="es"
+      className={`${crimsonPro.variable} ${inter.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-white text-stone-900">{children}</body>
     </html>
   )
 }
