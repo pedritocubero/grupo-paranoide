@@ -131,12 +131,12 @@ Cada sesión ≈ 1-2 horas. Al final de cada una: commit en Git, deploy a Vercel
 - Estilos tipográficos básicos.
 - **Criterio de éxito:** se puede leer el libro entero en español en el nuevo dominio de staging de Vercel.
 
-### Sesión 4 — Traducción con Claude
-- Endpoint `/api/translate-chapter/[id]`.
-- Integración con la API de Anthropic.
-- Collection `GlossaryTerms` + inyección en el prompt.
-- Botón "Retraducir pendientes" en el admin (custom component de Payload).
-- Lógica de hashes y estados `auto`/`manual`/`stale`.
+### Sesión 4 — Traducción con Claude ✅ (2026-04-24)
+- Endpoint `POST /api/translate-chapter/[id]` — traduce título, subtítulo y todas las secciones.
+- `src/lib/translate.ts` — extrae nodos de texto del árbol Lexical, llama a Claude, los reinsertan preservando formato bold/italic.
+- Collection `GlossaryTerms` registrada en Payload; script `src/scripts/seed-glossary.ts` carga los términos del libro.
+- Botón "Traducir al inglés" en el admin (campo `ui` en Chapters → `src/components/admin/TranslateButton.tsx`).
+- **Pendiente por el autor:** añadir `ANTHROPIC_API_KEY` real en `.env.local` y en Vercel Preview.
 - **Criterio de éxito:** el autor pulsa un botón y el capítulo aparece traducido al inglés en la pestaña correspondiente del admin.
 
 ### Sesión 5 — PDFs

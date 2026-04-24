@@ -116,5 +116,14 @@ export const Chapters: CollectionConfig = {
       defaultValue: false,
       label: 'Publicado',
     },
+    {
+      name: 'translateActions',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/components/admin/TranslateButton#TranslateButton',
+        },
+      },
+    },
   ],
 }

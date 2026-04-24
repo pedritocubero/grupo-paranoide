@@ -67,6 +67,9 @@ npm run seed
 # Importar contenido de los .docx (necesita el servidor corriendo)
 python3 src/scripts/import-content.py
 
+# Cargar términos del glosario (solo una vez, necesita el servidor corriendo)
+npx tsx src/scripts/seed-glossary.ts
+
 # Build de producción (verifica que compila sin errores)
 npm run build
 

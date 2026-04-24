@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 
 import { Users } from './src/collections/Users'
 import { Chapters } from './src/collections/Chapters'
+import { GlossaryTerms } from './src/collections/GlossaryTerms'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -17,7 +18,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Chapters],
+  collections: [Users, Chapters, GlossaryTerms],
   editor: lexicalEditor(),
   localization: {
     locales: ['es', 'en'],
