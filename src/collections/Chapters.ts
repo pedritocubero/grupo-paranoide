@@ -52,7 +52,6 @@ export const Chapters: CollectionConfig = {
     {
       name: 'sections',
       type: 'array',
-      localized: true,
       label: 'Secciones',
       fields: [
         {
@@ -67,6 +66,7 @@ export const Chapters: CollectionConfig = {
           name: 'content',
           type: 'richText',
           editor: lexicalEditor({}),
+          localized: true,
           label: 'Contenido',
         },
         {
@@ -78,12 +78,6 @@ export const Chapters: CollectionConfig = {
             { label: 'Desactualizada (retraducir)', value: 'stale' },
           ],
           defaultValue: 'stale',
-          admin: {
-            condition: (_, siblingData, { user }) => {
-              // Solo mostrar en locales distintos del español
-              return true
-            },
-          },
         },
         {
           name: 'sourceHash',
