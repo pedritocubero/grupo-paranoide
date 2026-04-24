@@ -28,6 +28,9 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL,
     },
+    // Crea/actualiza tablas automáticamente al arrancar (equivale a prisma db push)
+    // Cambiar a migraciones explícitas cuando el esquema esté estable
+    push: true,
   }),
   secret: process.env.PAYLOAD_SECRET ?? 'fallback-secret-change-in-production',
   typescript: {
