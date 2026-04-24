@@ -54,8 +54,22 @@ Esta lista vive también en la collection `GlossaryTerms` y se actualiza allí. 
 
 ## Comandos que el usuario debe recordar
 
-Ve acumulando aquí los comandos clave del proyecto a medida que los introducimos. Empezamos vacío.
+```bash
+# Arrancar el servidor local
+npm run dev           # http://localhost:3000
 
-```
-# (pendiente — se irá rellenando en la sesión 1)
+# Admin de Payload
+# http://localhost:3000/admin
+
+# Crear los 25 capítulos vacíos en la BD (solo una vez)
+npm run seed
+
+# Importar contenido de los .docx (necesita el servidor corriendo)
+python3 src/scripts/import-content.py
+
+# Build de producción (verifica que compila sin errores)
+npm run build
+
+# Deploy a Vercel (staging — NO producción)
+vercel
 ```
