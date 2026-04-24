@@ -5,20 +5,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 type Props = {
   params: Promise<{ locale: string; slug: string }>
-}
-
-export async function generateStaticParams() {
-  try {
-    const payload = await getPayloadClient()
-    const { docs } = await payload.find({ collection: 'chapters', limit: 100 })
-    return ['es', 'en'].flatMap((locale) =>
-      docs.map((chapter) => ({ locale, slug: chapter.slug as string })),
-    )
-  } catch {
-    return []
-  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

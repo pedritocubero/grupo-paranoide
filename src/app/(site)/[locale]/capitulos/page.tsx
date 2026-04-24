@@ -2,9 +2,7 @@ import { getPayloadClient } from '@/lib/payload'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export async function generateStaticParams() {
-  return [{ locale: 'es' }, { locale: 'en' }]
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,
