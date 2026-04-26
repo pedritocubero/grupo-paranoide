@@ -68,6 +68,12 @@ export default async function CapituloPage({ params }: Props) {
               {chapter.subtitle as string}
             </p>
           )}
+          <a
+            href={`/${locale}/capitulo/${slug}/pdf`}
+            className="inline-block mt-6 font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            ↓ {locale === 'es' ? 'Descargar PDF' : 'Download PDF'}
+          </a>
         </div>
       </header>
 
