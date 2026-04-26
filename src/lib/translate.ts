@@ -11,7 +11,6 @@ interface GlossaryEntry {
   notes?: string | null
 }
 
-// Loose type for Lexical tree traversal — avoids fighting with SerializedLexicalNode's strict base type
 type LexicalNode = {
   type: string
   text?: string
@@ -19,16 +18,41 @@ type LexicalNode = {
   [key: string]: unknown
 }
 
-function collectTexts(node: LexicalNode): string[] {
-  if (node.type === 'text' && typeof node.text === 'string') {
-    return [node.text]
+// Build a string with 【i】text【/i】 markers around every text node.
+// Returns the marked string and the total number of text nodes found.
+function buildMarkedString(root: LexicalNode): { marked: string; count: number } {
+  let i = 0
+
+  function walk(node: LexicalNode): string {
+    if (node.type === 'text') {
+      const marker = `【${i}】${node.text ?? ''}【/${i}】`
+      i++
+      return marker
+    }
+    if (Array.isArray(node.children)) {
+      const inner = node.children.map(walk).join('')
+      const isBlock = ['paragraph', 'heading', 'quote', 'listitem', 'list'].includes(node.type)
+      return isBlock ? inner + '\n' : inner
+    }
+    return ''
   }
-  if (Array.isArray(node.children)) {
-    return node.children.flatMap((child) => collectTexts(child))
-  }
-  return []
+
+  const marked = (root.children ?? []).map(walk).join('')
+  return { marked, count: i }
 }
 
+// Extract the translated text for each marker index from Claude's response.
+function parseMarkedTranslations(raw: string, count: number): string[] | null {
+  const results: string[] = []
+  for (let i = 0; i < count; i++) {
+    const match = raw.match(new RegExp(`【${i}】([\\s\\S]*?)【\\/${i}】`))
+    if (!match) return null
+    results.push(match[1])
+  }
+  return results
+}
+
+// Apply translated strings back to the tree, replacing text node contents.
 function applyTranslations(node: LexicalNode, translations: string[], counter: { i: number }): LexicalNode {
   if (node.type === 'text') {
     const translated = translations[counter.i] ?? node.text ?? ''
@@ -53,13 +77,19 @@ function buildGlossaryBlock(terms: GlossaryEntry[]): string {
   return `\nGlossary (always use these exact translations):\n${lines.join('\n')}\n`
 }
 
+function parseTaggedTranslations(raw: string, expected: number): string[] | null {
+  const matches = [...raw.matchAll(/<T>([\s\S]*?)<\/T>/g)]
+  if (matches.length !== expected) return null
+  return matches.map((m) => m[1])
+}
+
 export async function translateStrings(
   texts: string[],
   glossary: GlossaryEntry[] = [],
 ): Promise<string[]> {
   if (texts.length === 0) return []
   const glossaryBlock = buildGlossaryBlock(glossary)
-  const prompt = `Translate these Spanish texts to English. Return ONLY a JSON array with ${texts.length} string(s). No explanations or markdown.${glossaryBlock}
+  const prompt = `Translate these Spanish texts to English. Return ONLY ${texts.length} translation(s) wrapped in <T>...</T> tags, one per line. No explanations.${glossaryBlock}
 Input: ${JSON.stringify(texts)}`
 
   const message = await client.messages.create({
@@ -69,47 +99,43 @@ Input: ${JSON.stringify(texts)}`
   })
 
   const raw = (message.content[0] as { type: string; text: string }).text.trim()
-  const jsonMatch = raw.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) return texts
-  const translated: string[] = JSON.parse(jsonMatch[0])
-  return Array.isArray(translated) ? translated : texts
+  const translated = parseTaggedTranslations(raw, texts.length)
+  return translated ?? texts
 }
 
 export async function translateLexicalSection(
   content: SerializedEditorState,
   glossary: GlossaryEntry[],
 ): Promise<SerializedEditorState> {
-  const rootNode = content.root as unknown as LexicalNode
+  const root = content.root as unknown as LexicalNode
+  const { marked, count } = buildMarkedString(root)
 
-  const texts = collectTexts(rootNode)
-  if (texts.filter((t) => t.trim().length > 0).length === 0) return content
+  if (count === 0) return content
 
   const glossaryBlock = buildGlossaryBlock(glossary)
+  const prompt = `You are a literary translator. Translate the Spanish text to English.
+The text contains numbered markers 【0】…【/0】, 【1】…【/1】, etc.
+Return the COMPLETE text with ALL ${count} markers preserved exactly as-is.
+Only translate the content between the markers — never modify the markers themselves.${glossaryBlock}
 
-  const prompt = `You are a literary translator. Translate the following Spanish texts to English.
-Rules:
-- Return ONLY a JSON array of translated strings, in the same order as the input.
-- Preserve all punctuation, spacing, and special characters exactly.
-- Do not merge or split items — the output array must have exactly ${texts.length} elements.
-- Do not add explanations or markdown.${glossaryBlock}
-Input JSON array:
-${JSON.stringify(texts)}`
+Text to translate:
+${marked}`
 
   const message = await client.messages.create({
     model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
   })
 
   const raw = (message.content[0] as { type: string; text: string }).text.trim()
-  const jsonMatch = raw.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) throw new Error(`Claude returned unexpected format: ${raw.slice(0, 200)}`)
+  const translations = parseMarkedTranslations(raw, count)
 
-  const translated: string[] = JSON.parse(jsonMatch[0])
-  if (!Array.isArray(translated) || translated.length !== texts.length) {
-    throw new Error(`Translation length mismatch: expected ${texts.length}, got ${translated.length}`)
+  if (!translations) {
+    throw new Error(
+      `Marker mismatch: expected ${count} markers. Response: ${raw.slice(0, 300)}`,
+    )
   }
 
-  const newRoot = applyTranslations(rootNode, translated, { i: 0 })
+  const newRoot = applyTranslations(root, translations, { i: 0 })
   return { ...content, root: newRoot as SerializedEditorState['root'] }
 }

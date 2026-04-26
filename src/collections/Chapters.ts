@@ -53,6 +53,7 @@ export const Chapters: CollectionConfig = {
       name: 'sections',
       type: 'array',
       label: 'Secciones',
+      localized: true,
       fields: [
         {
           name: 'blockId',
@@ -66,7 +67,6 @@ export const Chapters: CollectionConfig = {
           name: 'content',
           type: 'richText',
           editor: lexicalEditor({}),
-          localized: true,
           label: 'Contenido',
         },
         {

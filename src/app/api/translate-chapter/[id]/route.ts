@@ -46,18 +46,25 @@ export async function POST(_req: Request, { params }: Params) {
     sourceHash?: string
   }>
 
-  const translatedSections = await Promise.all(
-    sections.map(async (section) => {
-      if (!section.content) return section
-      try {
-        const translatedContent = await translateLexicalSection(section.content, glossary)
-        return { ...section, content: translatedContent, translationStatus: 'auto' }
-      } catch (err) {
-        console.error(`Error translating section ${section.blockId}:`, err)
-        return section
-      }
-    }),
-  )
+  const BATCH_SIZE = 5
+  const translatedSections: typeof sections = []
+  for (let i = 0; i < sections.length; i += BATCH_SIZE) {
+    const batch = sections.slice(i, i + BATCH_SIZE)
+    const results = await Promise.all(
+      batch.map(async (section) => {
+        const { id: _id, ...rest } = section
+        if (!section.content) return rest
+        try {
+          const translatedContent = await translateLexicalSection(section.content, glossary)
+          return { ...rest, content: translatedContent, translationStatus: 'auto' }
+        } catch (err) {
+          console.error(`Error translating section ${section.blockId}:`, err)
+          return rest
+        }
+      }),
+    )
+    translatedSections.push(...results)
+  }
 
   // Translate title and subtitle
   const titleEs = chapter.title as string
