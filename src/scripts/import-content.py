@@ -11,15 +11,12 @@ import os
 import json
 import uuid
 import re
-import sys
 import urllib.request
-import urllib.parse
 from docx import Document
-from docx.shared import Pt
 
 # ── Configuración ────────────────────────────────────────────────────────────
 
-DOCX_DIR = os.path.join(os.path.dirname(__file__), "../../Libro El GCP")
+DOCX_DIR = os.path.join(os.path.dirname(__file__), "../../Libro El GCP-2")
 API_BASE = "http://localhost:3000/api"
 EMAIL    = "pedrocubero@icloud.com"
 PASSWORD = "dihgyh-pixxeq-Winfy2"
@@ -33,8 +30,12 @@ HEADING_MAX_LEN = 100
 
 # ── Helpers Lexical JSON ─────────────────────────────────────────────────────
 
-def text_node(text: str, bold=False, color=None) -> dict:  # color: Optional[str]
-    fmt = 1 if bold else 0
+def text_node(text: str, bold=False, italic=False, underline=False, color=None) -> dict:
+    # Lexical format bitmask: 1=bold, 2=italic, 8=underline
+    fmt = 0
+    if bold:     fmt |= 1
+    if italic:   fmt |= 2
+    if underline: fmt |= 8
     style = ""
     if color and color.upper() not in NEUTRAL_COLORS:
         style = f"color: #{color};"
@@ -54,18 +55,24 @@ def para_to_inline_nodes(para) -> list:
     for run in para.runs:
         if not run.text:
             continue
-        bold = bool(run.bold)
+        bold    = bool(run.bold)
+        italic  = bool(run.italic)
+        underline = bool(run.underline)
         color = None
         try:
             if run.font.color and run.font.color.type is not None:
                 color = str(run.font.color.rgb)
         except Exception:
             pass
-        nodes.append(text_node(run.text, bold=bold, color=color))
-    # Si no hay runs con formato, caer de vuelta al texto plano
+        nodes.append(text_node(run.text, bold=bold, italic=italic, underline=underline, color=color))
     if not nodes and para.text.strip():
         nodes = [text_node(para.text)]
     return nodes
+
+def plain_text_nodes(para) -> list:
+    """Texto plano sin formato — para encabezados (el nivel ya lo da el tag)."""
+    text = para.text.strip().rstrip(".,;:")
+    return [text_node(text)] if text else []
 
 def paragraph_node(children: list, indent: int = 0) -> dict:
     return {
@@ -100,6 +107,23 @@ def quote_node(children: list) -> dict:
         "version": 1,
     }
 
+def linebreak_node() -> dict:
+    return {"type": "linebreak", "version": 1}
+
+def toc_to_lexical(toc_entries: list) -> dict:
+    """Renderiza el índice como un único párrafo con saltos de línea, sin márgenes entre items."""
+    children = []
+    for i, para in enumerate(toc_entries):
+        text = para.text.strip()
+        if not text:
+            continue
+        if children:
+            children.append(linebreak_node())
+        children.append(text_node(text))
+    if not children:
+        return make_root([])
+    return make_root([paragraph_node(children)])
+
 def make_root(children: list) -> dict:
     return {
         "root": {
@@ -126,60 +150,97 @@ def is_bold(para) -> bool:
 def is_indented(para) -> bool:
     return bool(para.paragraph_format.left_indent)
 
-def is_heading_candidate(para) -> bool:
-    """Heurística para detectar títulos de sección."""
-    text = para.text.strip()
-    if not text:
-        return False
-    if len(text) > HEADING_MAX_LEN:
-        return False
-    # No debe terminar en puntuación de frase
-    if text[-1] in ".,:;":
-        return False
-    # No debe tener indentación
-    if is_indented(para):
-        return False
-    # Sin tamaño explícito pequeño (las citas son 10pt)
-    size = get_para_size(para)
-    if size and size <= 10.0:
-        return False
-    # No debe parecer una referencia bibliográfica
-    if re.match(r"^[A-Z][a-záéíóúñü]+ [A-Z]", text) and "." in text:
-        return False
-    # "List Paragraph" sin indent y sin tamaño pequeño = título de subsección
-    # (el autor usa este estilo para los encabezados del índice y del cuerpo)
-    if para.style.name == "List Paragraph" and not is_indented(para):
-        return True
-    return True
+STYLE_HEADING_MAP = {
+    "Nivel 1": "h2",
+    "Nivel 2": "h3",
+    "Nivel 3": "h4",
+}
 
-def find_toc_entries(paragraphs) -> set:
-    """Extrae los títulos del ÍNDICE para usarlos como guía."""
-    entries = set()
-    in_toc = False
-    blank_count = 0
-    for para in paragraphs:
-        text = para.text.strip()
-        if text.upper() in ("INDICE", "ÍNDICE"):
-            in_toc = True
-            continue
-        if not in_toc:
-            continue
-        if not text:
-            blank_count += 1
-            # Múltiples blancos seguidos = fin del TOC
-            if blank_count >= 3:
-                break
-            continue
-        blank_count = 0
-        # Las entradas del TOC son cortas (< 100 chars)
-        if len(text) <= HEADING_MAX_LEN:
-            entries.add(text)
-        # Un párrafo muy largo = ya estamos en el cuerpo real
-        elif len(text) > 200:
+def get_heading_level(para):  # -> Optional[str]
+    """
+    Detecta nivel de encabezado.
+    Primero mira el estilo de párrafo Word (Nivel 1/2/3).
+    Si no hay estilo explícito, recurre al formato tipográfico del autor:
+      cursiva + subrayado → h2
+      versalita (small caps) → h3
+      solo cursiva          → h4
+    Devuelve None si es texto de cuerpo normal.
+    """
+    # Método principal: estilo Word explícito
+    if para.style.name in STYLE_HEADING_MAP:
+        return STYLE_HEADING_MAP[para.style.name]
+
+    # Fallback: detección por formato tipográfico
+    text = para.text.strip()
+    if not text or len(text) > HEADING_MAX_LEN:
+        return None
+    if text[-1] in ".,:;":
+        return None
+
+    runs = [r for r in para.runs if r.text.strip()]
+    if not runs:
+        return None
+
+    # Excluir solo si NO tiene ningún marcador de encabezado explícito
+    # (para no bloquear encabezados que terminan en punto)
+    has_iu = all(r.italic and r.underline for r in runs)
+    has_sc = all(r.font.small_caps for r in runs)
+    has_i  = all(r.italic for r in runs)
+
+    if not (has_iu or has_sc or has_i):
+        if text[-1] in ".,:;":
+            return None
+
+    if has_iu:
+        return "h2"
+    if has_sc:
+        return "h3"
+    if has_i:
+        return "h4"
+
+    return None
+
+def find_toc_and_content(paragraphs):
+    """
+    Devuelve (toc_entries, content_start_idx).
+    toc_entries: lista de párrafos que forman el índice del capítulo.
+    content_start_idx: índice del primer párrafo de contenido real.
+
+    El índice termina en la primera línea vacía o en el primer Nivel 1.
+    """
+    toc_idx = None
+    for i, para in enumerate(paragraphs):
+        if para.text.strip().upper() in ("INDICE", "ÍNDICE"):
+            toc_idx = i
             break
-    return entries
+
+    if toc_idx is None:
+        return [], 0
+
+    toc_entries = []
+    i = toc_idx + 1
+    while i < len(paragraphs):
+        para = paragraphs[i]
+        text = para.text.strip()
+        if not text:
+            break  # línea vacía → fin del bloque de índice
+        if get_heading_level(para) == "h2":
+            break  # llegamos al contenido real sin línea vacía intermedia
+        toc_entries.append(para)
+        i += 1
+
+    # Saltar líneas vacías hasta el primer párrafo de contenido
+    while i < len(paragraphs) and not paragraphs[i].text.strip():
+        i += 1
+
+    return toc_entries, i
 
 def find_content_start(paragraphs) -> int:
+    """Devuelve el índice donde empieza el contenido real (mantiene compatibilidad)."""
+    _, content_start = find_toc_and_content(paragraphs)
+    return content_start
+
+def _find_content_start_legacy(paragraphs) -> int:
     """
     Devuelve el índice donde empieza el contenido real.
 
@@ -231,21 +292,22 @@ def find_content_start(paragraphs) -> int:
             return j
     return toc_idx + 1
 
-def split_into_sections(paragraphs: list, toc_entries: set) -> list:
+def split_into_sections(paragraphs: list) -> list:
     """
-    Divide los párrafos en secciones.
-    Cada sección es una lista de párrafos (el primero puede ser un título).
+    Divide los párrafos en secciones usando estilos Word (o formato tipográfico).
+    Un Nivel 1 / h2 abre una nueva sección principal.
+    El índice del capítulo (si existe) se incluye como primera sección.
     """
-    start = find_content_start(paragraphs)
+    _, start = find_toc_and_content(paragraphs)
     body = paragraphs[start:]
 
     sections = []
-    current = []
 
+    current = []
     for para in body:
         text = para.text.strip()
 
-        # "Referencias" en negrita → empieza una nueva sección (la última)
+        # "Referencias" en negrita → nueva sección final
         if is_bold(para) and text.lower() in ("referencias", "bibliografía"):
             if current:
                 sections.append(current)
@@ -255,10 +317,8 @@ def split_into_sections(paragraphs: list, toc_entries: set) -> list:
         if not text:
             continue
 
-        # ¿Es un nuevo título de sección?
-        if is_heading_candidate(para) and (text in toc_entries or (
-            len(text) <= 60 and not text[-1] in ".,:;" and not is_indented(para)
-        )):
+        # h2 → nueva sección principal
+        if get_heading_level(para) == "h2":
             if current:
                 sections.append(current)
             current = [para]
@@ -268,11 +328,10 @@ def split_into_sections(paragraphs: list, toc_entries: set) -> list:
     if current:
         sections.append(current)
 
-    # Si no se detectaron secciones con título, el capítulo es una sola sección
     if not sections:
         sections = [body]
 
-    # Fallback: si hay sólo una sección enorme (>50 párrafos), dividir por bloques de 15
+    # Fallback: sección enorme sin encabezados h2 → dividir en bloques
     if len(sections) == 1 and len(sections[0]) > 50:
         big = sections[0]
         sections = [big[i:i+15] for i in range(0, len(big), 15)]
@@ -283,29 +342,34 @@ def split_into_sections(paragraphs: list, toc_entries: set) -> list:
 
 def section_to_lexical(paras: list) -> dict:
     nodes = []
-    first = True
 
     for para in paras:
         text = para.text.strip()
         if not text:
             continue
 
+        # Título introductorio: ya está en la BD como título del capítulo
+        if para.style.name == "Título introductorio":
+            continue
+
+        # Cita larga: bloque de cita por estilo explícito
+        if para.style.name == "Cita larga":
+            nodes.append(quote_node(para_to_inline_nodes(para)))
+            continue
+
+        level = get_heading_level(para)
+        if level:
+            nodes.append(heading_node(plain_text_nodes(para), tag=level))
+            continue
+
         inline = para_to_inline_nodes(para)
+
+        # Fallback para documentos sin estilos: detectar citas por tamaño/sangrado
         size = get_para_size(para)
         indented = is_indented(para)
 
-        # Primer párrafo del grupo y es candidato a título → heading h3
-        if first and is_heading_candidate(para):
-            nodes.append(heading_node(inline, tag="h3"))
-            first = False
-            continue
-
-        first = False
-
-        # "List Paragraph" con indent = item de lista → párrafo indentado
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
-        # 10pt o indentado sin List Paragraph = cita/blockquote
         elif (size and size <= 10.0) or (indented and para.style.name != "List Paragraph"):
             nodes.append(quote_node(inline))
         else:
@@ -374,13 +438,11 @@ def main():
         doc = Document(filepath)
         paras = doc.paragraphs
 
-        toc_entries = find_toc_entries(paras)
-        raw_sections = split_into_sections(paras, toc_entries)
+        raw_sections = split_into_sections(paras)
 
         sections_payload = []
         for sec in raw_sections:
             lexical = section_to_lexical(sec)
-            # Solo incluir secciones con contenido real
             if not lexical["root"]["children"]:
                 continue
             sections_payload.append({
