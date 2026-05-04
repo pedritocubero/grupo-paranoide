@@ -104,3 +104,7 @@ body {
   color: #78716c;
   font-style: italic;
 }
+
+.prose blockquote + blockquote {
+  margin-top: 0.2em;
+}
