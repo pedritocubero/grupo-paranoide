@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { Crimson_Pro, Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import '../globals.css'
 
 const crimsonPro = Crimson_Pro({
   variable: '--font-serif',
   subsets: ['latin'],
-  weight: ['400', '600'],
+  weight: ['400', '600', '700'],
   style: ['normal', 'italic'],
 })
 
@@ -25,7 +26,10 @@ export default function SiteLayout({ children }: Readonly<{ children: React.Reac
       lang="es"
       className={`${crimsonPro.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-stone-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-white text-stone-900">
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }

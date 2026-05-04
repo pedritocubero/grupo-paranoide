@@ -99,6 +99,8 @@ body {
   border-left: 2px solid #e7e5e4;
   padding-left: 1.5rem;
   margin-left: 0;
+  margin-top: 1.4em;
+  margin-bottom: 1.4em;
   color: #78716c;
   font-style: italic;
 }
