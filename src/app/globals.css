@@ -116,3 +116,7 @@ body {
 .prose p + blockquote {
   margin-top: 0.3em;
 }
+
+.prose p:has(+ blockquote) {
+  margin-bottom: 0.3em;
+}
