@@ -371,7 +371,12 @@ def section_to_lexical(paras: list) -> dict:
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
         elif (size and size <= 10.0) or (indented and para.style.name != "List Paragraph"):
-            nodes.append(quote_node(inline))
+            # Etiqueta de cita: párrafo corto sin comillas iniciales → párrafo normal
+            quote_starters = ('"', '"', '«', '"', '[', '(', '—', '-')
+            if len(text) <= 80 and not text.startswith(quote_starters):
+                nodes.append(paragraph_node(inline))
+            else:
+                nodes.append(quote_node(inline))
         else:
             nodes.append(paragraph_node(inline))
 
