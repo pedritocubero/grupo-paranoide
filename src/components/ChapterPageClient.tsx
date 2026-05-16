@@ -130,6 +130,8 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
               )}
               <a
                 href={`/${locale}/capitulo/${data.slug}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`inline-block mt-6 ${navClass}`}
               >
                 {pdfLabel}

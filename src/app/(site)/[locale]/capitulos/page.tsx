@@ -219,6 +219,8 @@ export default async function CapitulosPage({ params }: Props) {
                         </Link>
                         <a
                           href={`/${locale}/capitulo/${chapter.slug}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="font-sans text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
                         >
                           PDF
