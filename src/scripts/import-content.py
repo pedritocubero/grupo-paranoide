@@ -16,7 +16,7 @@ from docx import Document
 
 # ── Configuración ────────────────────────────────────────────────────────────
 
-DOCX_DIR = os.path.join(os.path.dirname(__file__), "../../Libro El GCP-3")
+DOCX_DIR = os.path.join(os.path.dirname(__file__), "../../Libro El GCP-4")
 API_BASE = "http://localhost:3000/api"
 EMAIL    = "pedrocubero@icloud.com"
 PASSWORD = "dihgyh-pixxeq-Winfy2"
@@ -430,11 +430,17 @@ def main():
         key=lambda f: docx_order_from_filename(f) or 999
     )
 
+    # Solo reimportar los capítulos con epígrafes corregidos en GCP-4
+    ONLY_ORDERS = {5, 7, 11, 17, 18, 19, 20, 21, 23, 25}
+
     results = []
     for filename in docx_files:
         order = docx_order_from_filename(filename)
         if order is None or order == 0:
             print(f"  ⏭  Saltando: {filename} (sin capítulo en BD)")
+            continue
+        if order not in ONLY_ORDERS:
+            print(f"  ⏭  Saltando cap {order} (no en lista de actualizados)")
             continue
         chapter = by_order.get(order)
         if not chapter:
