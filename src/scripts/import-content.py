@@ -430,17 +430,11 @@ def main():
         key=lambda f: docx_order_from_filename(f) or 999
     )
 
-    # Solo reimportar los capítulos con epígrafes corregidos en GCP-4
-    ONLY_ORDERS = {5, 7, 11, 17, 18, 19, 20, 21, 23, 25}
-
     results = []
     for filename in docx_files:
         order = docx_order_from_filename(filename)
         if order is None or order == 0:
             print(f"  ⏭  Saltando: {filename} (sin capítulo en BD)")
-            continue
-        if order not in ONLY_ORDERS:
-            print(f"  ⏭  Saltando cap {order} (no en lista de actualizados)")
             continue
         chapter = by_order.get(order)
         if not chapter:
@@ -451,9 +445,22 @@ def main():
         doc = Document(filepath)
         paras = doc.paragraphs
 
+        toc_entries, _ = find_toc_and_content(paras)
         raw_sections = split_into_sections(paras)
 
         sections_payload = []
+
+        # El índice del capítulo va como primera sección (si existe)
+        if toc_entries:
+            toc_lexical = toc_to_lexical(toc_entries)
+            if toc_lexical["root"]["children"]:
+                sections_payload.append({
+                    "blockId": str(uuid.uuid4()),
+                    "content": toc_lexical,
+                    "translationStatus": "stale",
+                    "sourceHash": "",
+                })
+
         for sec in raw_sections:
             lexical = section_to_lexical(sec)
             if not lexical["root"]["children"]:
