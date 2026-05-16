@@ -35,7 +35,7 @@ export function extractHeadings(
       if (node.type !== 'heading') continue
       const tag = node.tag as string
       if (tag !== 'h2' && tag !== 'h3' && tag !== 'h4') continue
-      const text = textFromChildren(node.children ?? [])
+      const text = textFromChildren(node.children ?? []).replace(/\.$/, '')
       if (!text.trim()) continue
       const base = slugify(text) || 'heading'
       const count = seen.get(base) ?? 0
