@@ -2,11 +2,27 @@
 
 import { useLivePreview } from '@payloadcms/live-preview-react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import type { JSXConvertersFunction } from '@payloadcms/richtext-lexical/react'
 import type { SerializedEditorState } from 'lexical'
 import Link from 'next/link'
 import { TableOfContents } from '@/components/TableOfContents'
 import { extractHeadings } from '@/lib/headings'
 import { useEffect, useRef, useState } from 'react'
+import React from 'react'
+
+const richTextConverters: JSXConvertersFunction = ({ defaultConverters }) => ({
+  ...defaultConverters,
+  text: ({ node }: { node: any }) => {
+    const rendered = (defaultConverters as any).text?.({ node }) ?? node.text
+    if (!node.style) return rendered
+    const styleObj: Record<string, string> = {}
+    node.style.split(';').forEach((rule: string) => {
+      const [prop, val] = rule.split(':').map((s: string) => s.trim())
+      if (prop && val) styleObj[prop.replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase())] = val
+    })
+    return Object.keys(styleObj).length > 0 ? React.createElement('span', { style: styleObj }, rendered) : rendered
+  },
+})
 
 type Section = {
   id?: string
@@ -143,7 +159,7 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
           <div className="prose" ref={proseRef}>
             {sections.map((section) => (
               <div key={section.blockId} className="section">
-                {section.content ? <RichText data={section.content} /> : null}
+                {section.content ? <RichText data={section.content} converters={richTextConverters} /> : null}
               </div>
             ))}
           </div>
