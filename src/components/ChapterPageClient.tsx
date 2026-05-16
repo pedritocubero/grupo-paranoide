@@ -50,12 +50,19 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
     const el = proseRef.current
     if (!el) return
     const seen = new Map<string, number>()
-    el.querySelectorAll('h2, h3, h4').forEach((heading) => {
-      const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT)
+    const stripTrailingPeriod = (el: Element) => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
       let lastText: Text | null = null
       let node: Node | null
       while ((node = walker.nextNode())) lastText = node as Text
       if (lastText?.textContent?.endsWith('.')) lastText.textContent = lastText.textContent.slice(0, -1)
+    }
+    el.querySelectorAll('blockquote').forEach((bq) => {
+      const prev = bq.previousElementSibling
+      if (prev?.tagName === 'P') stripTrailingPeriod(prev)
+    })
+    el.querySelectorAll('h2, h3, h4').forEach((heading) => {
+      stripTrailingPeriod(heading)
       const text = heading.textContent ?? ''
       const base = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 80) || 'heading'
       const count = seen.get(base) ?? 0
