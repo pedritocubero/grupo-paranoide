@@ -445,22 +445,9 @@ def main():
         doc = Document(filepath)
         paras = doc.paragraphs
 
-        toc_entries, _ = find_toc_and_content(paras)
         raw_sections = split_into_sections(paras)
 
         sections_payload = []
-
-        # El índice del capítulo va como primera sección (si existe)
-        if toc_entries:
-            toc_lexical = toc_to_lexical(toc_entries)
-            if toc_lexical["root"]["children"]:
-                sections_payload.append({
-                    "blockId": str(uuid.uuid4()),
-                    "content": toc_lexical,
-                    "translationStatus": "stale",
-                    "sourceHash": "",
-                })
-
         for sec in raw_sections:
             lexical = section_to_lexical(sec)
             if not lexical["root"]["children"]:
