@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 export const GlossaryTerms: CollectionConfig = {
   slug: 'glossary-terms',
+  labels: { singular: '📝 Término', plural: '📝 Glosario' },
   admin: {
     useAsTitle: 'termEs',
     defaultColumns: ['termEs', 'termEn', 'notes'],

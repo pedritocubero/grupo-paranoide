@@ -1,18 +1,24 @@
-'use client'
-
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
-export default function LangSelector({ locale }: { locale: string }) {
-  const pathname = usePathname()
+export default function LangSelector({
+  locale,
+  light = false,
+}: {
+  locale: string
+  light?: boolean
+}) {
   const otherLocale = locale === 'es' ? 'en' : 'es'
-  const otherPath = pathname.replace(new RegExp(`^/${locale}(/|$)`), `/${otherLocale}$1`)
+
+  const active = light ? 'text-white font-semibold' : 'font-semibold text-foreground'
+  const inactive = light
+    ? 'text-white/50 hover:text-white transition-colors'
+    : 'opacity-40 hover:opacity-100 transition-opacity'
 
   return (
     <div className="flex gap-2 text-sm font-sans tracking-widest uppercase">
-      <span className="font-semibold text-foreground">{locale}</span>
-      <span className="opacity-30">/</span>
-      <Link href={otherPath} className="opacity-40 hover:opacity-100 transition-opacity">
+      <span className={active}>{locale}</span>
+      <span className={light ? 'text-white/30' : 'opacity-30'}>/</span>
+      <Link href={`/${otherLocale}`} className={inactive}>
         {otherLocale}
       </Link>
     </div>

@@ -1,6 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { SerializedEditorState } from 'lexical'
 import React from 'react'
+import { extractHeadings } from '@/lib/headings'
 
 type LexicalNode = {
   type: string
@@ -74,6 +75,42 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginBottom: 80,
   },
+  tocPage: {
+    paddingTop: 72,
+    paddingBottom: 90,
+    paddingLeft: 72,
+    paddingRight: 72,
+    fontFamily: 'Times-Roman',
+    fontSize: 11,
+    color: '#1a1a1a',
+  },
+  tocTitle: {
+    fontFamily: 'Helvetica',
+    fontSize: 7,
+    letterSpacing: 2,
+    color: '#aaaaaa',
+    marginBottom: 32,
+  },
+  tocH2: {
+    fontFamily: 'Times-Roman',
+    fontSize: 11,
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  tocH3: {
+    fontFamily: 'Times-Roman',
+    fontSize: 10,
+    marginLeft: 16,
+    marginBottom: 4,
+    color: '#444444',
+  },
+  tocH4: {
+    fontFamily: 'Times-Italic',
+    fontSize: 9,
+    marginLeft: 32,
+    marginBottom: 3,
+    color: '#666666',
+  },
   coverAuthor: {
     fontFamily: 'Helvetica',
     fontSize: 8,
@@ -102,6 +139,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 16,
     marginBottom: 6,
+    lineHeight: 1.3,
+  },
+  heading4: {
+    fontFamily: 'Times-Italic',
+    fontSize: 11,
+    marginTop: 12,
+    marginBottom: 4,
     lineHeight: 1.3,
   },
   quote: {
@@ -183,7 +227,7 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
     case 'heading': {
       const tag = (node.tag as string) ?? 'h2'
       const style =
-        tag === 'h1' ? styles.heading1 : tag === 'h2' ? styles.heading2 : styles.heading3
+        tag === 'h1' ? styles.heading1 : tag === 'h2' ? styles.heading2 : tag === 'h3' ? styles.heading3 : styles.heading4
       return (
         <View key={key} style={style}>
           <Text>{renderInline(node.children ?? [])}</Text>
@@ -247,7 +291,9 @@ export function ChapterDocument({
   locale: string
 }) {
   const chapterLabel = locale === 'es' ? 'Capítulo' : 'Chapter'
+  const tocLabel = locale === 'es' ? 'ÍNDICE' : 'CONTENTS'
   const sections = chapter.sections ?? []
+  const headings = extractHeadings(sections)
 
   return (
     <Document
@@ -271,6 +317,21 @@ export function ChapterDocument({
           <Text style={styles.coverAuthor}>PEDRO CUBERO BROS</Text>
         </View>
       </Page>
+
+      {/* TOC page — only if there are headings */}
+      {headings.length > 0 && (
+        <Page size="A4" style={styles.tocPage}>
+          <Text style={styles.tocTitle}>{tocLabel}</Text>
+          {headings.map((h, i) => (
+            <Text
+              key={i}
+              style={h.tag === 'h2' ? styles.tocH2 : h.tag === 'h3' ? styles.tocH3 : styles.tocH4}
+            >
+              {h.text}
+            </Text>
+          ))}
+        </Page>
+      )}
 
       {/* Content pages — react-pdf paginates automatically */}
       <Page size="A4" style={styles.page}>

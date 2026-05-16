@@ -22,6 +22,14 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { TranslateButton as TranslateButton_2b20f02041d8ff74ea7cde5845aeaee1 } from '@/components/admin/TranslateButton'
+import { AddSectionTopButton as AddSectionTopButton_3c91f8b2d4a0e5c6f7b8d9e0f1a2b3c4 } from '@/components/admin/AddSectionTopButton'
+import { BlueTextFeatureClient as BlueTextFeatureClient_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 } from '@/components/admin/BlueTextFeatureClient'
+import { AnalyticsLink as AnalyticsLink_f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6 } from '@/components/admin/AnalyticsLink'
+import { WorkflowGuide as WorkflowGuide_b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7 } from '@/components/admin/WorkflowGuide'
+import { DownloadBookButton as DownloadBookButton_c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8 } from '@/components/admin/DownloadBookButton'
+import { StaleSectionsWarning as StaleSectionsWarning_d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9 } from '@/components/admin/StaleSectionsWarning'
+import { TranslateSectionButton as TranslateSectionButton_e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 } from '@/components/admin/TranslateSectionButton'
+import { TranslationStatusField as TranslationStatusField_760d1260eda71b03951ff51cd03457f6 } from '@/components/admin/TranslationStatusField'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -50,5 +58,13 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/admin/TranslateButton#TranslateButton": TranslateButton_2b20f02041d8ff74ea7cde5845aeaee1,
+  "@/components/admin/AddSectionTopButton#AddSectionTopButton": AddSectionTopButton_3c91f8b2d4a0e5c6f7b8d9e0f1a2b3c4,
+  "@/components/admin/BlueTextFeatureClient#BlueTextFeatureClient": BlueTextFeatureClient_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6,
+  "@/components/admin/AnalyticsLink#AnalyticsLink": AnalyticsLink_f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6,
+  "@/components/admin/WorkflowGuide#WorkflowGuide": WorkflowGuide_b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7,
+  "@/components/admin/DownloadBookButton#DownloadBookButton": DownloadBookButton_c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8,
+  "@/components/admin/StaleSectionsWarning#StaleSectionsWarning": StaleSectionsWarning_d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9,
+  "@/components/admin/TranslateSectionButton#TranslateSectionButton": TranslateSectionButton_e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0,
+  "@/components/admin/TranslationStatusField#TranslationStatusField": TranslationStatusField_760d1260eda71b03951ff51cd03457f6,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

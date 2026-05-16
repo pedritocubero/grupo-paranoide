@@ -20,7 +20,12 @@ export function TranslateButton() {
         setMessage(data.error ?? 'Error desconocido')
       } else {
         setStatus('done')
-        setMessage(`Traducción completada — ${data.sectionsTranslated} secciones.`)
+        const skipped = data.sectionsSkipped ?? 0
+        setMessage(
+          skipped > 0
+            ? `✓ ${data.sectionsTranslated} secciones traducidas · ${skipped} sin cambios (no retraduzco)`
+            : `✓ ${data.sectionsTranslated} secciones traducidas`
+        )
       }
     } catch {
       setStatus('error')
@@ -41,7 +46,7 @@ export function TranslateButton() {
         Traducción automática
       </p>
       <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-        Genera la versión en inglés de este capítulo usando Claude. Sobreescribirá la traducción existente.
+        Genera la versión en inglés de este capítulo. Solo retraduce las secciones desactualizadas.
       </p>
       <button
         onClick={handleTranslate}

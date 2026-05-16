@@ -1,8 +1,6 @@
 import { getPayloadClient } from '@/lib/payload'
-import { RichText } from '@payloadcms/richtext-lexical/react'
-import type { SerializedEditorState } from 'lexical'
+import ChapterPageClient from '@/components/ChapterPageClient'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -41,60 +39,45 @@ export default async function CapituloPage({ params }: Props) {
   const chapter = docs[0]
   if (!chapter) notFound()
 
-  const sections = (chapter.sections ?? []) as Array<{
-    id?: string
-    blockId: string
-    content?: SerializedEditorState | null
-  }>
+  const order = chapter.order as number
+
+  const [{ docs: prevDocs }, { docs: nextDocs }] = await Promise.all([
+    payload.find({
+      collection: 'chapters',
+      locale: locale as 'es' | 'en',
+      where: { order: { equals: order - 1 } },
+      limit: 1,
+      depth: 0,
+    }),
+    payload.find({
+      collection: 'chapters',
+      locale: locale as 'es' | 'en',
+      where: { order: { equals: order + 1 } },
+      limit: 1,
+      depth: 0,
+    }),
+  ])
+
+  const prevChapter = prevDocs[0]
+    ? { slug: prevDocs[0].slug as string, title: prevDocs[0].title as string, order: prevDocs[0].order as number }
+    : null
+  const nextChapter = nextDocs[0]
+    ? { slug: nextDocs[0].slug as string, title: nextDocs[0].title as string, order: nextDocs[0].order as number }
+    : null
 
   return (
-    <article className="max-w-2xl mx-auto px-6 py-16">
-      <header className="mb-12">
-        <Link
-          href={`/${locale}/capitulos`}
-          className="font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors"
-        >
-          ← {locale === 'es' ? 'Índice' : 'Contents'}
-        </Link>
-        <div className="mt-8">
-          <span className="font-sans text-xs text-stone-300">
-            {locale === 'es' ? 'Capítulo' : 'Chapter'} {chapter.order as number}
-          </span>
-          <h1 className="font-serif text-4xl leading-tight mt-2 text-foreground">
-            {chapter.title as string}
-          </h1>
-          {chapter.subtitle && (
-            <p className="font-sans text-sm text-stone-500 mt-4 leading-relaxed">
-              {chapter.subtitle as string}
-            </p>
-          )}
-          <a
-            href={`/${locale}/capitulo/${slug}/pdf`}
-            className="inline-block mt-6 font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            ↓ {locale === 'es' ? 'Descargar PDF' : 'Download PDF'}
-          </a>
-        </div>
-      </header>
-
-      <div className="prose">
-        {sections.map((section) => (
-          <div key={section.blockId} className="section">
-            {section.content ? (
-              <RichText data={section.content} />
-            ) : null}
-          </div>
-        ))}
-      </div>
-
-      <nav className="mt-20 pt-8 border-t border-stone-100">
-        <Link
-          href={`/${locale}/capitulos`}
-          className="font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors"
-        >
-          ← {locale === 'es' ? 'Todos los capítulos' : 'All chapters'}
-        </Link>
-      </nav>
-    </article>
+    <ChapterPageClient
+      initialData={{
+        id: chapter.id,
+        slug: chapter.slug as string,
+        order: chapter.order as number,
+        title: chapter.title as string,
+        subtitle: chapter.subtitle as string | null | undefined,
+        sections: chapter.sections as any,
+      }}
+      prevChapter={prevChapter}
+      nextChapter={nextChapter}
+      locale={locale}
+    />
   )
 }
