@@ -200,6 +200,18 @@ export const Chapters: CollectionConfig = {
       },
     },
     {
+      name: 'references',
+      type: 'array',
+      label: 'Referencias bibliográficas',
+      admin: {
+        description: 'Gestionado por el script de importación. No editar manualmente.',
+      },
+      fields: [
+        { name: 'num', type: 'number', required: true, label: 'Número' },
+        { name: 'text', type: 'text', required: true, label: 'Referencia' },
+      ],
+    },
+    {
       name: 'published',
       type: 'checkbox',
       localized: true,

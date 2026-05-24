@@ -74,6 +74,7 @@ export default async function CapituloPage({ params }: Props) {
         title: chapter.title as string,
         subtitle: chapter.subtitle as string | null | undefined,
         sections: chapter.sections as any,
+        references: (chapter.references ?? []) as any,
       }}
       prevChapter={prevChapter}
       nextChapter={nextChapter}

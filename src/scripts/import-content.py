@@ -21,6 +21,9 @@ API_BASE = "http://localhost:3000/api"
 EMAIL    = "pedrocubero@icloud.com"
 PASSWORD = "dihgyh-pixxeq-Winfy2"
 
+# Rango de capítulos a reimportar (None = todos; o set de órdenes concretos)
+CHAPTER_ONLY = None
+
 # Colores que NO se consideran "especiales" (negro / gris oscuro → sin color)
 NEUTRAL_COLORS = {"000000", "1A1A1D", "1C1C1C", "202122", "595959", "333333",
                   "1C1C1E", "0F0F0F", "FFFFFF"}
@@ -287,12 +290,40 @@ def _find_content_start_legacy(paragraphs) -> int:
             return j
     return toc_idx + 1
 
-def split_into_sections(paragraphs: list) -> list:
+def extract_references(paragraphs: list) -> tuple:
+    """
+    Localiza la sección Referencias/Bibliografía al final del capítulo.
+    Devuelve (body_paragraphs, [{num, text}, ...]).
+    """
+    refs_idx = None
+    for i, para in enumerate(paragraphs):
+        text = para.text.strip()
+        if is_bold(para) and text.lower() in ("referencias", "bibliografía"):
+            refs_idx = i
+            break
+
+    if refs_idx is None:
+        return paragraphs, []
+
+    body = paragraphs[:refs_idx]
+    references = []
+    num = 1
+    for para in paragraphs[refs_idx + 1:]:
+        text = para.text.strip()
+        if text:
+            references.append({"num": num, "text": text})
+            num += 1
+
+    return body, references
+
+
+def split_into_sections(paragraphs: list) -> tuple:
     """
     Divide los párrafos en secciones usando estilos Word (o formato tipográfico).
     Un Nivel 1 / h2 abre una nueva sección principal.
-    El índice del capítulo (si existe) se incluye como primera sección.
+    Devuelve (sections, references).
     """
+    paragraphs, references = extract_references(paragraphs)
     _, start = find_toc_and_content(paragraphs)
     body = paragraphs[start:]
 
@@ -301,13 +332,6 @@ def split_into_sections(paragraphs: list) -> list:
     current = []
     for para in body:
         text = para.text.strip()
-
-        # "Referencias" en negrita → nueva sección final
-        if is_bold(para) and text.lower() in ("referencias", "bibliografía"):
-            if current:
-                sections.append(current)
-            current = [para]
-            continue
 
         if not text:
             continue
@@ -331,7 +355,7 @@ def split_into_sections(paragraphs: list) -> list:
         big = sections[0]
         sections = [big[i:i+15] for i in range(0, len(big), 15)]
 
-    return sections
+    return sections, references
 
 # ── Conversión sección → Lexical JSON ───────────────────────────────────────
 
@@ -369,20 +393,37 @@ def section_to_lexical(paras: list) -> dict:
             continue
 
         inline = para_to_inline_nodes(para)
+        quote_starters = ('"', '"', '«', '"', '[', '(', '—', '-')
 
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
+        elif text.startswith(quote_starters):
+            # Empieza por comilla → cita, independiente del tamaño/sangría
+            nodes.append(quote_node(inline))
         elif is_quote_candidate:
-            # Etiqueta de cita: párrafo corto sin comillas iniciales → párrafo normal
-            quote_starters = ('"', '"', '«', '"', '[', '(', '—', '-')
-            if len(text) <= 80 and not text.startswith(quote_starters):
+            # Párrafo corto sin comillas iniciales → etiqueta/referencia, no cita
+            if len(text) <= 80:
                 nodes.append(paragraph_node(inline))
             else:
                 nodes.append(quote_node(inline))
         else:
             nodes.append(paragraph_node(inline))
 
-    return make_root(nodes)
+    # Post-proceso: párrafo corto entre dos blockquotes → se integra en la cita
+    processed = []
+    n = len(nodes)
+    for i, node in enumerate(nodes):
+        if node.get('type') == 'paragraph':
+            children = node.get('children', [])
+            text_len = sum(len(c.get('text', '')) for c in children if c.get('type') == 'text')
+            prev_q = i > 0 and nodes[i - 1].get('type') == 'quote'
+            next_q = i < n - 1 and nodes[i + 1].get('type') == 'quote'
+            if prev_q and next_q and text_len <= 150:
+                processed.append(quote_node(children))
+                continue
+        processed.append(node)
+
+    return make_root(processed)
 
 # ── API REST de Payload ──────────────────────────────────────────────────────
 
@@ -408,8 +449,8 @@ def get_all_chapters(token: str) -> list:
     result = api_request("GET", "/chapters?limit=100&sort=order", token=token)
     return result.get("docs", [])
 
-def update_chapter_sections(chapter_id: str, sections: list, token: str):
-    payload = {"sections": sections}
+def update_chapter(chapter_id: str, sections: list, references: list, token: str):
+    payload = {"sections": sections, "references": references}
     api_request("PATCH", f"/chapters/{chapter_id}?locale=es", data=payload, token=token)
 
 # ── Lógica principal ─────────────────────────────────────────────────────────
@@ -436,6 +477,9 @@ def main():
         if order is None or order == 0:
             print(f"  ⏭  Saltando: {filename} (sin capítulo en BD)")
             continue
+        if CHAPTER_ONLY is not None and order not in CHAPTER_ONLY:
+            print(f"  ⏭  Saltando cap {order}")
+            continue
         chapter = by_order.get(order)
         if not chapter:
             print(f"  ⚠  No encontrado en BD: orden {order} ({filename})")
@@ -445,7 +489,7 @@ def main():
         doc = Document(filepath)
         paras = doc.paragraphs
 
-        raw_sections = split_into_sections(paras)
+        raw_sections, references = split_into_sections(paras)
 
         sections_payload = []
         for sec in raw_sections:
@@ -459,8 +503,9 @@ def main():
                 "sourceHash": "",
             })
 
-        update_chapter_sections(chapter["id"], sections_payload, token)
-        print(f"  ✓ Cap {order:2d} — {chapter['title'][:50]}: {len(sections_payload)} secciones")
+        update_chapter(chapter["id"], sections_payload, references, token)
+        ref_count = len(references)
+        print(f"  ✓ Cap {order:2d} — {chapter['title'][:50]}: {len(sections_payload)} secciones, {ref_count} referencias")
         results.append({"order": order, "title": chapter["title"], "sections": len(sections_payload)})
 
     print(f"\nImportación completa: {len(results)} capítulos actualizados.")

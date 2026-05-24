@@ -61,7 +61,7 @@ body {
   font-style: italic;
   color: #78716c;
   margin-top: 1.8rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 1.2rem;
 }
 
 .prose strong {
@@ -119,4 +119,15 @@ body {
 
 .prose p:has(+ blockquote) {
   margin-bottom: 0.3em;
+}
+
+.citation-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid #d6d3d1;
+  transition: border-color 0.15s;
+}
+
+.citation-link:hover {
+  border-bottom-color: #78716c;
 }

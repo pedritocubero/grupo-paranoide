@@ -30,6 +30,8 @@ type Section = {
   content?: SerializedEditorState | null
 }
 
+type Reference = { num: number; text: string }
+
 type Chapter = {
   id: string | number
   slug: string
@@ -37,6 +39,7 @@ type Chapter = {
   title: string
   subtitle?: string | null
   sections?: Section[]
+  references?: Reference[]
 }
 
 type AdjacentChapter = { slug: string; title: string; order: number } | null
@@ -85,7 +88,40 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
       seen.set(base, count + 1)
       heading.id = count === 0 ? base : `${base}-${count}`
     })
-  }, [sections])
+
+    // Convertir (N) en links a #ref-N cuando N es una referencia válida
+    const validNums = new Set((data.references ?? []).map((r) => String(r.num)))
+    if (validNums.size > 0) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      const textNodes: Text[] = []
+      let node: Node | null
+      while ((node = walker.nextNode())) textNodes.push(node as Text)
+
+      for (const textNode of textNodes) {
+        if (textNode.parentElement?.closest('a')) continue
+        const text = textNode.textContent ?? ''
+        if (!/\(\d+\)/.test(text)) continue
+
+        const parts = text.split(/(\(\d+\))/)
+        if (parts.length <= 1) continue
+
+        const span = document.createElement('span')
+        for (const part of parts) {
+          const m = part.match(/^\((\d+)\)$/)
+          if (m && validNums.has(m[1])) {
+            const a = document.createElement('a')
+            a.href = `#ref-${m[1]}`
+            a.className = 'citation-link'
+            a.textContent = part
+            span.appendChild(a)
+          } else {
+            span.appendChild(document.createTextNode(part))
+          }
+        }
+        textNode.parentNode?.replaceChild(span, textNode)
+      }
+    }
+  }, [sections, data.references])
 
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 500)
@@ -163,6 +199,23 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
               </div>
             ))}
           </div>
+
+          {/* Referencias bibliográficas */}
+          {(data.references ?? []).length > 0 && (
+            <div className="references-section mt-16 pt-8 border-t border-stone-200">
+              <h2 className="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6">
+                {locale === 'es' ? 'Referencias' : 'References'}
+              </h2>
+              <ol className="space-y-2">
+                {(data.references ?? []).map((ref) => (
+                  <li key={ref.num} id={`ref-${ref.num}`} className="flex gap-3 text-sm text-stone-500 leading-relaxed font-serif">
+                    <span className="shrink-0 text-stone-400 tabular-nums">{ref.num}.</span>
+                    <span>{ref.text}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           {/* Nav inferior */}
           <nav className="mt-20 pt-8 border-t border-stone-100 flex items-center justify-between">
