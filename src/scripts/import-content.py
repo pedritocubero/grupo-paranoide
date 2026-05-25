@@ -77,6 +77,15 @@ def plain_text_nodes(para) -> list:
     text = para.text.strip().rstrip(".,;:")
     return [text_node(text)] if text else []
 
+def strip_italic(nodes: list) -> list:
+    """Elimina el flag de cursiva de los nodos de texto (formato inline dentro de citas)."""
+    result = []
+    for node in nodes:
+        if node.get('type') == 'text':
+            node = {**node, 'format': node.get('format', 0) & ~2}  # quita el bit 2 (italic)
+        result.append(node)
+    return result
+
 def paragraph_node(children: list, indent: int = 0) -> dict:
     return {
         "type": "paragraph",
@@ -176,8 +185,6 @@ def get_heading_level(para):  # -> Optional[str]
     # Fallback: detección por formato tipográfico
     text = para.text.strip()
     if not text or len(text) > HEADING_MAX_LEN:
-        return None
-    if text[-1] in ".,:;":
         return None
 
     runs = [r for r in para.runs if r.text.strip()]
@@ -298,7 +305,7 @@ def extract_references(paragraphs: list) -> tuple:
     refs_idx = None
     for i, para in enumerate(paragraphs):
         text = para.text.strip()
-        if is_bold(para) and text.lower() in ("referencias", "bibliografía"):
+        if is_bold(para) and re.search(r'\breferencias?\b|\bbibliografía\b', text.lower()):
             refs_idx = i
             break
 
@@ -373,7 +380,7 @@ def section_to_lexical(paras: list) -> dict:
 
         # Cita larga: bloque de cita por estilo explícito
         if para.style.name == "Cita larga":
-            nodes.append(quote_node(para_to_inline_nodes(para)))
+            nodes.append(quote_node(strip_italic(para_to_inline_nodes(para))))
             continue
 
         # Detectar indicadores de cita antes de la detección de encabezado,
@@ -399,31 +406,17 @@ def section_to_lexical(paras: list) -> dict:
             nodes.append(paragraph_node(inline, indent=1))
         elif text.startswith(quote_starters):
             # Empieza por comilla → cita, independiente del tamaño/sangría
-            nodes.append(quote_node(inline))
+            nodes.append(quote_node(strip_italic(inline)))
         elif is_quote_candidate:
             # Párrafo corto sin comillas iniciales → etiqueta/referencia, no cita
             if len(text) <= 80:
                 nodes.append(paragraph_node(inline))
             else:
-                nodes.append(quote_node(inline))
+                nodes.append(quote_node(strip_italic(inline)))
         else:
             nodes.append(paragraph_node(inline))
 
-    # Post-proceso: párrafo corto entre dos blockquotes → se integra en la cita
-    processed = []
-    n = len(nodes)
-    for i, node in enumerate(nodes):
-        if node.get('type') == 'paragraph':
-            children = node.get('children', [])
-            text_len = sum(len(c.get('text', '')) for c in children if c.get('type') == 'text')
-            prev_q = i > 0 and nodes[i - 1].get('type') == 'quote'
-            next_q = i < n - 1 and nodes[i + 1].get('type') == 'quote'
-            if prev_q and next_q and text_len <= 150:
-                processed.append(quote_node(children))
-                continue
-        processed.append(node)
-
-    return make_root(processed)
+    return make_root(nodes)
 
 # ── API REST de Payload ──────────────────────────────────────────────────────
 

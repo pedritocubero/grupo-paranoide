@@ -273,6 +273,8 @@ function renderLexical(content: SerializedEditorState): React.ReactNode[] {
   return (root.children ?? []).map((child, i) => renderBlock(child, String(i)))
 }
 
+type Reference = { num: number; text: string }
+
 type Chapter = {
   title: unknown
   subtitle?: unknown
@@ -281,6 +283,7 @@ type Chapter = {
     blockId: string
     content?: SerializedEditorState | null
   }>
+  references?: Reference[]
 }
 
 export function ChapterDocument({
@@ -292,7 +295,9 @@ export function ChapterDocument({
 }) {
   const chapterLabel = locale === 'es' ? 'Capítulo' : 'Chapter'
   const tocLabel = locale === 'es' ? 'ÍNDICE' : 'CONTENTS'
+  const refsLabel = locale === 'es' ? 'REFERENCIAS' : 'REFERENCES'
   const sections = chapter.sections ?? []
+  const references = chapter.references ?? []
   const headings = extractHeadings(sections)
 
   return (
@@ -337,6 +342,23 @@ export function ChapterDocument({
       <Page size="A4" style={styles.page}>
         {sections.map((section) =>
           section.content ? renderLexical(section.content) : null,
+        )}
+        {references.length > 0 && (
+          <View break style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid #e0e0e0' }}>
+            <Text style={{ fontFamily: 'Helvetica', fontSize: 7, letterSpacing: 2, color: '#aaaaaa', marginBottom: 16 }}>
+              {refsLabel}
+            </Text>
+            {references.map((ref) => (
+              <View key={ref.num} style={{ flexDirection: 'row', marginBottom: 6 }}>
+                <Text style={{ fontFamily: 'Times-Roman', fontSize: 9, color: '#555555', width: 20, flexShrink: 0 }}>
+                  {ref.num}.
+                </Text>
+                <Text style={{ fontFamily: 'Times-Roman', fontSize: 9, color: '#555555', flex: 1, lineHeight: 1.5 }}>
+                  {ref.text}
+                </Text>
+              </View>
+            ))}
+          </View>
         )}
         <Text style={styles.footer} fixed>
           elgrupoparanoide.com

@@ -33,11 +33,14 @@ export async function GET(
     content?: SerializedEditorState | null
   }>
 
+  const references = (chapter.references ?? []) as Array<{ num: number; text: string }>
+
   const chapterData = {
     title: chapter.title,
     subtitle: chapter.subtitle,
     order: chapter.order,
     sections,
+    references,
   }
 
   let pdfBuffer: Buffer

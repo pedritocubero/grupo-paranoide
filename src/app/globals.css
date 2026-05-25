@@ -105,6 +105,10 @@ body {
   font-style: italic;
 }
 
+.prose blockquote em {
+  font-style: normal;
+}
+
 .prose blockquote + blockquote {
   margin-top: 0.2em;
 }
