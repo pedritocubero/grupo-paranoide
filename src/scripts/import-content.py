@@ -324,6 +324,10 @@ def extract_references(paragraphs: list) -> tuple:
     return body, references
 
 
+def body_has_inline_citations(paragraphs: list) -> bool:
+    """Devuelve True si el cuerpo contiene al menos una cita (N) numérica."""
+    return any(re.search(r'\(\d+\)', para.text) for para in paragraphs)
+
 def split_into_sections(paragraphs: list) -> tuple:
     """
     Divide los párrafos en secciones usando estilos Word (o formato tipográfico).
@@ -331,6 +335,9 @@ def split_into_sections(paragraphs: list) -> tuple:
     Devuelve (sections, references).
     """
     paragraphs, references = extract_references(paragraphs)
+    # Si el cuerpo no tiene ninguna cita (N), descartar las referencias
+    if references and not body_has_inline_citations(paragraphs):
+        references = []
     _, start = find_toc_and_content(paragraphs)
     body = paragraphs[start:]
 
