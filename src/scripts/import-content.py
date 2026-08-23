@@ -18,8 +18,8 @@ from docx import Document
 
 DOCX_DIR = os.path.join(os.path.dirname(__file__), "../../Libro El GCP-4")
 API_BASE = "http://localhost:3000/api"
-EMAIL    = "pedrocubero@icloud.com"
-PASSWORD = "dihgyh-pixxeq-Winfy2"
+EMAIL    = os.environ["PAYLOAD_ADMIN_EMAIL"]
+PASSWORD = os.environ["PAYLOAD_ADMIN_PASSWORD"]
 
 # Rango de capítulos a reimportar (None = todos; o set de órdenes concretos)
 CHAPTER_ONLY = None
