@@ -140,14 +140,27 @@ body {
 
 .prose .lexical-table {
   border-collapse: collapse;
+  table-layout: fixed;
   width: 100%;
+  min-width: 640px;
   font-family: var(--font-sans, sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .prose .lexical-table-cell {
   border: 1px solid #e7e5e4 !important;
-  padding: 0.5rem 0.75rem !important;
+  padding: 0.35rem 0.5rem !important;
+  text-align: center;
+  vertical-align: middle;
+  overflow-wrap: break-word;
+}
+
+/* La primera columna (el rasgo descrito) necesita mucho más espacio que
+   el resto (que solo llevan una etiqueta corta o un "+"), y se lee mejor
+   alineada a la izquierda en vez de centrada */
+.prose .lexical-table td:first-child,
+.prose .lexical-table th:first-child {
+  width: 34%;
   text-align: left;
   vertical-align: top;
 }
@@ -158,7 +171,6 @@ body {
   background-color: #fafaf9;
   font-weight: 600;
   color: #57534e;
-  white-space: nowrap;
 }
 
 .citation-link:hover {

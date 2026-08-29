@@ -73,10 +73,11 @@ const styles = StyleSheet.create({
     flex: 1, borderStyle: 'solid', borderWidth: 0.5, borderColor: '#cccccc',
     paddingVertical: 3, paddingHorizontal: 4,
   },
-  tableCellFirst: { flex: 3 },
-  tableCellText: { fontFamily: 'Helvetica', fontSize: 7, lineHeight: 1.3 },
+  tableCellFirst: { flex: 4 },
+  tableCellText: { fontFamily: 'Helvetica', fontSize: 6.5, lineHeight: 1.3, textAlign: 'center' },
+  tableCellTextFirst: { textAlign: 'left' },
   tableCellHeader: { backgroundColor: '#f5f5f4' },
-  tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 7, lineHeight: 1.3 },
+  tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, lineHeight: 1.3, textAlign: 'center' },
   footer: {
     position: 'absolute', bottom: 40, left: 72, right: 72,
     textAlign: 'center', fontFamily: 'Helvetica', fontSize: 7, color: '#bbbbbb',
@@ -145,7 +146,12 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
                       ...(isHeader ? styles.tableCellHeader : {}),
                     }}
                   >
-                    <Text style={isHeader ? styles.tableCellHeaderText : styles.tableCellText}>
+                    <Text
+                      style={{
+                        ...(isHeader ? styles.tableCellHeaderText : styles.tableCellText),
+                        ...(ci === 0 ? styles.tableCellTextFirst : {}),
+                      }}
+                    >
                       {renderInline(cell.children ?? [])}
                     </Text>
                   </View>

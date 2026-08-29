@@ -184,20 +184,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   tableCellFirst: {
-    flex: 3,
+    flex: 4,
   },
   tableCellText: {
     fontFamily: 'Helvetica',
-    fontSize: 7,
+    fontSize: 6.5,
     lineHeight: 1.3,
+    textAlign: 'center',
+  },
+  tableCellTextFirst: {
+    textAlign: 'left',
   },
   tableCellHeader: {
     backgroundColor: '#f5f5f4',
   },
   tableCellHeaderText: {
     fontFamily: 'Helvetica-Bold',
-    fontSize: 7,
+    fontSize: 6.5,
     lineHeight: 1.3,
+    textAlign: 'center',
   },
   footer: {
     position: 'absolute',
@@ -304,7 +309,12 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
                       ...(isHeader ? styles.tableCellHeader : {}),
                     }}
                   >
-                    <Text style={isHeader ? styles.tableCellHeaderText : styles.tableCellText}>
+                    <Text
+                      style={{
+                        ...(isHeader ? styles.tableCellHeaderText : styles.tableCellText),
+                        ...(ci === 0 ? styles.tableCellTextFirst : {}),
+                      }}
+                    >
                       {renderInline(cell.children ?? [])}
                     </Text>
                   </View>
