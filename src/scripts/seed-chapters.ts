@@ -36,7 +36,8 @@ const chapters = [
   { order: 22, part: 'III', slug: 'muerte', title: 'Muerte' },
   { order: 23, part: 'III', slug: 'bienestar', title: 'Bienestar' },
   { order: 24, part: 'III', slug: 'carisma-revelacion', title: 'Carisma y revelación' },
-  { order: 25, part: 'III', slug: 'personalidad-obsesiva-obstinada', title: 'De la personalidad obsesiva a la obstinada' },
+  // OBSTINACIONES — fuera de "El grupo paranoide", vive bajo su propia página
+  { order: 1, part: 'obstinaciones', slug: 'personalidad-obsesiva-obstinada', title: 'De la personalidad obsesiva a la obstinada' },
 ] as const
 
 async function seed() {

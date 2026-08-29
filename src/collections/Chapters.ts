@@ -78,7 +78,7 @@ export const Chapters: CollectionConfig = {
           type: 'number',
           required: true,
           admin: {
-            description: 'Orden del capítulo (1-24)',
+            description: 'Orden del capítulo dentro de su parte/sección',
           },
         },
         {
@@ -89,6 +89,7 @@ export const Chapters: CollectionConfig = {
             { label: 'Parte I', value: 'I' },
             { label: 'Parte II', value: 'II' },
             { label: 'Parte III', value: 'III' },
+            { label: 'Obstinaciones', value: 'obstinaciones' },
           ],
         },
         {
