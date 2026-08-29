@@ -40,19 +40,23 @@ export default async function CapituloPage({ params }: Props) {
   if (!chapter) notFound()
 
   const order = chapter.order as number
+  // "El grupo paranoide" son las Partes I/II/III, numeradas de forma continua entre ellas.
+  // "Obstinaciones" (y futuras secciones fuera del libro) tienen su propia numeración aparte,
+  // así que el capítulo anterior/siguiente no debe cruzar de una a otra.
+  const bookParts = (chapter.part as string) === 'obstinaciones' ? ['obstinaciones'] : ['I', 'II', 'III']
 
   const [{ docs: prevDocs }, { docs: nextDocs }] = await Promise.all([
     payload.find({
       collection: 'chapters',
       locale: locale as 'es' | 'en',
-      where: { order: { equals: order - 1 } },
+      where: { and: [{ order: { equals: order - 1 } }, { part: { in: bookParts } }] },
       limit: 1,
       depth: 0,
     }),
     payload.find({
       collection: 'chapters',
       locale: locale as 'es' | 'en',
-      where: { order: { equals: order + 1 } },
+      where: { and: [{ order: { equals: order + 1 } }, { part: { in: bookParts } }] },
       limit: 1,
       depth: 0,
     }),

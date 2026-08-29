@@ -35,6 +35,30 @@ function lexical(paragraphs: string[]) {
   }
 }
 
+// Construye un párrafo con un único enlace de Lexical, ej. para listar capítulos sueltos
+function linkPara(text: string, url: string) {
+  return {
+    type: 'paragraph' as const,
+    version: 1,
+    format: '' as const,
+    indent: 0,
+    direction: 'ltr' as const,
+    children: [
+      {
+        type: 'link' as const,
+        version: 3,
+        format: '' as const,
+        indent: 0,
+        direction: 'ltr' as const,
+        fields: { linkType: 'custom' as const, newTab: false, url },
+        children: [
+          { type: 'text', version: 1, text, format: 0, detail: 0, mode: 'normal' as const, style: '' },
+        ],
+      },
+    ],
+  }
+}
+
 const pages = [
   {
     slug: 'sobre-mi',
@@ -54,10 +78,21 @@ const pages = [
   {
     slug: 'obstinaciones',
     title: 'Obstinaciones',
-    content: lexical([
-      'De la personalidad obsesiva a la obstinada',
-      '[Enlace pendiente — añade el enlace desde el panel de administración]',
-    ]),
+    content: {
+      root: {
+        type: 'root' as const,
+        version: 1,
+        format: '' as const,
+        indent: 0,
+        direction: 'ltr' as const,
+        children: [
+          linkPara(
+            '1. De la personalidad obsesiva a la obstinada',
+            '/es/capitulo/personalidad-obsesiva-obstinada',
+          ),
+        ],
+      },
+    },
   },
   {
     slug: 'depresion',
