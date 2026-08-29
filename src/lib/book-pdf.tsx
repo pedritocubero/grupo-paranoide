@@ -27,9 +27,6 @@ const styles = StyleSheet.create({
   bookCoverInner: {
     flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
   },
-  bookCoverWebsite: {
-    fontFamily: 'Helvetica', fontSize: 7, color: '#aaaaaa', marginBottom: 80, textAlign: 'center',
-  },
   bookCoverTitle: {
     fontFamily: 'Times-Bold', fontSize: 36, textAlign: 'center', color: '#111111',
     marginBottom: 24, lineHeight: 1.3,
@@ -183,7 +180,6 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
       {/* Portada del libro */}
       <Page size="A4" style={styles.bookCoverPage}>
         <View style={styles.bookCoverInner}>
-          <Text style={styles.bookCoverWebsite}>ELGRUPOPARANOIDE.COM</Text>
           <Text style={styles.bookCoverTitle}>El grupo paranoide</Text>
           <Text style={styles.bookCoverAuthor}>PEDRO CUBERO BROS</Text>
         </View>

@@ -39,13 +39,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  coverWebsite: {
-    fontFamily: 'Helvetica',
-    fontSize: 7,
-    color: '#aaaaaa',
-    marginBottom: 80,
-    textAlign: 'center',
-  },
   coverBookTitle: {
     fontFamily: 'Helvetica',
     fontSize: 9,
@@ -380,7 +373,6 @@ export function ChapterDocument({
       {/* Cover page */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.coverInner}>
-          <Text style={styles.coverWebsite}>ELGRUPOPARANOIDE.COM</Text>
           <Text style={styles.coverBookTitle}>El grupo paranoide</Text>
           <Text style={styles.coverChapterNum}>
             {chapterLabel} {chapter.order as number}
