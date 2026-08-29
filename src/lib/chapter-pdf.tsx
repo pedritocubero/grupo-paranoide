@@ -168,6 +168,37 @@ const styles = StyleSheet.create({
   listContent: {
     flex: 1,
   },
+  table: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  tableRow: {
+    flexDirection: 'row',
+  },
+  tableCell: {
+    flex: 1,
+    borderStyle: 'solid',
+    borderWidth: 0.5,
+    borderColor: '#cccccc',
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+  },
+  tableCellFirst: {
+    flex: 3,
+  },
+  tableCellText: {
+    fontFamily: 'Helvetica',
+    fontSize: 7,
+    lineHeight: 1.3,
+  },
+  tableCellHeader: {
+    backgroundColor: '#f5f5f4',
+  },
+  tableCellHeaderText: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 7,
+    lineHeight: 1.3,
+  },
   footer: {
     position: 'absolute',
     bottom: 40,
@@ -250,6 +281,35 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
             <View key={i} style={styles.listItem}>
               <Text style={styles.listBullet}>{isOrdered ? `${i + 1}.` : '•'}</Text>
               <Text style={styles.listContent}>{renderInline(item.children ?? [])}</Text>
+            </View>
+          ))}
+        </View>
+      )
+    }
+
+    case 'table': {
+      const rows = node.children ?? []
+      return (
+        <View key={key} style={styles.table} wrap={false}>
+          {rows.map((row, ri) => (
+            <View key={ri} style={styles.tableRow}>
+              {(row.children ?? []).map((cell, ci) => {
+                const isHeader = ((cell.headerState as number) ?? 0) > 0
+                return (
+                  <View
+                    key={ci}
+                    style={{
+                      ...styles.tableCell,
+                      ...(ci === 0 ? styles.tableCellFirst : {}),
+                      ...(isHeader ? styles.tableCellHeader : {}),
+                    }}
+                  >
+                    <Text style={isHeader ? styles.tableCellHeaderText : styles.tableCellText}>
+                      {renderInline(cell.children ?? [])}
+                    </Text>
+                  </View>
+                )
+              })}
             </View>
           ))}
         </View>

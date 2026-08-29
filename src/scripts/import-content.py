@@ -13,6 +13,9 @@ import uuid
 import re
 import urllib.request
 from docx import Document
+from docx.oxml.ns import qn
+from docx.table import Table
+from docx.text.paragraph import Paragraph
 
 # ── Configuración ────────────────────────────────────────────────────────────
 
@@ -136,6 +139,62 @@ def toc_to_lexical(toc_entries: list) -> dict:
         return make_root([])
     return make_root([paragraph_node(children)])
 
+def table_cell_node(children: list, is_header: bool = False) -> dict:
+    return {
+        "type": "tablecell",
+        "children": children,
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "version": 1,
+        "headerState": 2 if is_header else 0,
+        "colSpan": 1,
+        "rowSpan": 1,
+    }
+
+def table_row_node(cells: list) -> dict:
+    return {
+        "type": "tablerow",
+        "children": cells,
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "version": 1,
+    }
+
+def table_to_lexical_node(table: Table) -> dict:
+    """Convierte una tabla del .docx en un nodo de tabla de Lexical, fila por fila.
+    La primera fila se trata como cabecera (así son todas las tablas de este libro)."""
+    rows = []
+    for ri, row in enumerate(table.rows):
+        cells = []
+        for cell in row.cells:
+            cell_paragraphs = [p for p in cell.paragraphs if p.text.strip()]
+            if cell_paragraphs:
+                children = [paragraph_node(para_to_inline_nodes(p)) for p in cell_paragraphs]
+            else:
+                children = [paragraph_node([])]
+            cells.append(table_cell_node(children, is_header=(ri == 0)))
+        rows.append(table_row_node(cells))
+    return {
+        "type": "table",
+        "children": rows,
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "version": 1,
+    }
+
+def iter_block_items(doc: Document):
+    """Recorre el cuerpo del documento en orden real, devolviendo Paragraph y Table
+    intercalados tal y como aparecen (doc.paragraphs y doc.tables por separado no
+    conservan el orden ni permiten saber dónde va cada tabla)."""
+    for child in doc.element.body.iterchildren():
+        if child.tag == qn('w:p'):
+            yield Paragraph(child, doc)
+        elif child.tag == qn('w:tbl'):
+            yield Table(child, doc)
+
 def make_root(children: list) -> dict:
     return {
         "root": {
@@ -219,6 +278,8 @@ def find_toc_and_content(paragraphs):
     """
     toc_idx = None
     for i, para in enumerate(paragraphs):
+        if isinstance(para, Table):
+            continue
         if para.text.strip().upper() in ("INDICE", "ÍNDICE"):
             toc_idx = i
             break
@@ -230,6 +291,9 @@ def find_toc_and_content(paragraphs):
     i = toc_idx + 1
     while i < len(paragraphs):
         para = paragraphs[i]
+        if isinstance(para, Table):
+            i += 1
+            continue
         text = para.text.strip()
         # El primer h2 real marca el inicio del contenido
         if text and get_heading_level(para) == "h2":
@@ -304,6 +368,8 @@ def extract_references(paragraphs: list) -> tuple:
     """
     refs_idx = None
     for i, para in enumerate(paragraphs):
+        if isinstance(para, Table):
+            continue
         text = para.text.strip()
         if is_bold(para) and re.search(r'\breferencias?\b|\bbibliografía\b', text.lower()):
             refs_idx = i
@@ -316,6 +382,8 @@ def extract_references(paragraphs: list) -> tuple:
     references = []
     num = 1
     for para in paragraphs[refs_idx + 1:]:
+        if isinstance(para, Table):
+            continue
         text = para.text.strip()
         if text:
             references.append({"num": num, "text": text})
@@ -326,7 +394,11 @@ def extract_references(paragraphs: list) -> tuple:
 
 def body_has_inline_citations(paragraphs: list) -> bool:
     """Devuelve True si el cuerpo contiene al menos una cita (N) numérica."""
-    return any(re.search(r'\(\d+\)', para.text) for para in paragraphs)
+    return any(
+        re.search(r'\(\d+\)', para.text)
+        for para in paragraphs
+        if not isinstance(para, Table)
+    )
 
 def split_into_sections(paragraphs: list) -> tuple:
     """
@@ -345,6 +417,11 @@ def split_into_sections(paragraphs: list) -> tuple:
 
     current = []
     for para in body:
+        if isinstance(para, Table):
+            # Las tablas nunca abren sección ni se descartan por estar "vacías"
+            current.append(para)
+            continue
+
         text = para.text.strip()
 
         if not text:
@@ -377,6 +454,10 @@ def section_to_lexical(paras: list) -> dict:
     nodes = []
 
     for para in paras:
+        if isinstance(para, Table):
+            nodes.append(table_to_lexical_node(para))
+            continue
+
         text = para.text.strip()
         if not text:
             continue
@@ -487,7 +568,7 @@ def main():
 
         filepath = os.path.join(DOCX_DIR, filename)
         doc = Document(filepath)
-        paras = doc.paragraphs
+        paras = list(iter_block_items(doc))
 
         raw_sections, references = split_into_sections(paras)
 

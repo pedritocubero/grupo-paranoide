@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { lexicalEditor, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { BlueTextFeature } from '@/lib/lexical/BlueTextFeature'
 import crypto from 'crypto'
 
@@ -167,7 +167,13 @@ export const Chapters: CollectionConfig = {
         {
           name: 'content',
           type: 'richText',
-          editor: lexicalEditor({ features: ({ defaultFeatures }) => [...defaultFeatures, BlueTextFeature()] }),
+          editor: lexicalEditor({
+            features: ({ defaultFeatures }) => [
+              ...defaultFeatures,
+              BlueTextFeature(),
+              EXPERIMENTAL_TableFeature(),
+            ],
+          }),
           label: 'Contenido',
         },
         {

@@ -132,6 +132,35 @@ body {
   transition: border-color 0.15s;
 }
 
+.prose .lexical-table-container {
+  overflow-x: auto;
+  margin-top: 1.4em;
+  margin-bottom: 1.4em;
+}
+
+.prose .lexical-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.8rem;
+}
+
+.prose .lexical-table-cell {
+  border: 1px solid #e7e5e4 !important;
+  padding: 0.5rem 0.75rem !important;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose .lexical-table-cell-header-1,
+.prose .lexical-table-cell-header-2,
+.prose .lexical-table-cell-header-3 {
+  background-color: #fafaf9;
+  font-weight: 600;
+  color: #57534e;
+  white-space: nowrap;
+}
+
 .citation-link:hover {
   border-bottom-color: #78716c;
 }
