@@ -1,4 +1,5 @@
 import { getPayloadClient } from '@/lib/payload'
+import { ChapterIndexList } from '@/components/ChapterIndexList'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { SerializedEditorState } from 'lexical'
 import type { Metadata } from 'next'
@@ -39,6 +40,36 @@ export default async function PageRoute({ params }: Props) {
   const page = docs[0]
   if (!page) notFound()
 
+  // "Obstinaciones" (y futuras secciones fuera del libro) muestran su índice de
+  // capítulos con el mismo formato que "El grupo paranoide", en vez del contenido
+  // libre de la página: se lee directamente de la collection Chapters para que al
+  // añadir un capítulo nuevo con part="obstinaciones" aparezca aquí sin tocar nada más.
+  const isObstinaciones = page.slug === 'obstinaciones'
+  const obstinacionesChapters = isObstinaciones
+    ? (
+        await payload.find({
+          collection: 'chapters',
+          locale: locale as 'es' | 'en',
+          where: { part: { equals: 'obstinaciones' } },
+          sort: 'order',
+          limit: 100,
+        })
+      ).docs.map((chapter) => ({
+        slug: chapter.slug as string,
+        title: chapter.title as string,
+        subtitle: chapter.subtitle as string | null | undefined,
+        order: chapter.order as number,
+      }))
+    : []
+
+  const body = isObstinaciones ? (
+    <ChapterIndexList chapters={obstinacionesChapters} locale={locale} />
+  ) : page.content ? (
+    <div className="prose">
+      <RichText data={page.content as SerializedEditorState} />
+    </div>
+  ) : null
+
   const raw = page.imageUrl as string | null | undefined
   const imageUrl =
     raw && (raw.startsWith('/') || raw.startsWith('http://') || raw.startsWith('https://'))
@@ -55,11 +86,7 @@ export default async function PageRoute({ params }: Props) {
             <h1 className="font-serif text-5xl leading-tight text-foreground mb-10">
               {page.title as string}
             </h1>
-            <div className="prose">
-              {page.content ? (
-                <RichText data={page.content as SerializedEditorState} />
-              ) : null}
-            </div>
+            {body}
           </div>
           {/* Columna derecha: foto */}
           <div className="md:col-span-1">
@@ -86,11 +113,7 @@ export default async function PageRoute({ params }: Props) {
           {page.title as string}
         </h1>
       </header>
-      <div className="prose">
-        {page.content ? (
-          <RichText data={page.content as SerializedEditorState} />
-        ) : null}
-      </div>
+      {body}
     </article>
   )
 }

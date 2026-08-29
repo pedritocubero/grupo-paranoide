@@ -1,6 +1,6 @@
 import { getPayloadClient } from '@/lib/payload'
+import { ChapterIndexList } from '@/components/ChapterIndexList'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -196,46 +196,15 @@ export default async function CapitulosPage({ params }: Props) {
             <h2 className="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6 pb-3 border-b border-stone-100">
               {label}
             </h2>
-            <ol className="space-y-4">
-              {partChapters.map((chapter) => (
-                <li key={chapter.id}>
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-sans text-xs text-stone-300 w-5 shrink-0 text-right">
-                      {chapter.order}
-                    </span>
-                    <div className="flex-1 flex items-baseline justify-between gap-4">
-                      <Link
-                        href={`/${locale}/capitulo/${chapter.slug}`}
-                        className="font-serif text-lg text-foreground hover:text-stone-500 transition-colors"
-                      >
-                        {chapter.title as string}
-                      </Link>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <Link
-                          href={`/${locale}/capitulo/${chapter.slug}`}
-                          className="font-sans text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
-                        >
-                          {locale === 'en' ? 'Read' : 'Leer'}
-                        </Link>
-                        <a
-                          href={`/${locale}/capitulo/${chapter.slug}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-sans text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
-                        >
-                          PDF
-                        </a>
-                      </div>
-                      {chapter.subtitle && (
-                        <p className="font-sans text-xs text-stone-400 mt-1 leading-relaxed">
-                          {chapter.subtitle as string}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <ChapterIndexList
+              chapters={partChapters.map((chapter) => ({
+                slug: chapter.slug as string,
+                title: chapter.title as string,
+                subtitle: chapter.subtitle as string | null | undefined,
+                order: chapter.order as number,
+              }))}
+              locale={locale}
+            />
           </section>
         ))}
       </div>
