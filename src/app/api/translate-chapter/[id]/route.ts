@@ -68,12 +68,13 @@ export async function POST(req: Request, { params }: Params) {
     const { id: _id, ...rest } = section
     const existingEn = enByBlockId.get(section.blockId)
 
-    // Skip if we already have an English version translated from this exact
-    // content (sourceHash match) — regardless of the editorial "stale" flag,
-    // so a chapter can be translated incrementally across several calls
-    // without re-translating sections a previous call already finished.
-    const hashUnchanged = existingEn?.sourceHash === section.sourceHash
-    const isAlreadyTranslated = existingEn?.content != null && hashUnchanged
+    // Skip if a previous call in this incremental run already translated
+    // this blockId (marked 'auto' by the code below). Note: sourceHash can't
+    // be used for this comparison — the sections field's beforeChange hook in
+    // Chapters.ts recomputes it from the actual content on every save, so the
+    // English row's hash reflects the English text, not the Spanish source,
+    // and will never equal the Spanish section's hash.
+    const isAlreadyTranslated = existingEn?.content != null && existingEn?.translationStatus === 'auto'
 
     if (isAlreadyTranslated) {
       const { id: _enId, ...enRest } = existingEn!
