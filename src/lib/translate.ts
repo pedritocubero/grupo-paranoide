@@ -148,23 +148,26 @@ Only translate the content between the markers — never modify the markers them
 Text to translate:
 ${marked}`
 
-  const message = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    messages: [{ role: 'user', content: prompt }],
-  })
+  let lastError: Error | null = null
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const message = await client.messages.create({
+      model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+      max_tokens: 8192,
+      messages: [{ role: 'user', content: prompt }],
+    })
 
-  const raw = (message.content[0] as { type: string; text: string }).text.trim()
-  const translations = parseMarkedTranslations(raw, count)
+    const raw = (message.content[0] as { type: string; text: string }).text.trim()
+    const translations = parseMarkedTranslations(raw, count)
 
-  if (!translations) {
-    throw new Error(
-      `Marker mismatch: expected ${count} markers. Response: ${raw.slice(0, 300)}`,
-    )
+    if (translations) {
+      const newChunkRoot = applyTranslations(chunkRoot, translations, { i: 0 })
+      return newChunkRoot.children as LexicalNode[]
+    }
+
+    lastError = new Error(`Marker mismatch: expected ${count} markers. Response: ${raw.slice(0, 300)}`)
   }
 
-  const newChunkRoot = applyTranslations(chunkRoot, translations, { i: 0 })
-  return newChunkRoot.children as LexicalNode[]
+  throw lastError
 }
 
 export async function translateLexicalSection(
