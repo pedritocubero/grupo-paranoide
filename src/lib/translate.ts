@@ -108,7 +108,7 @@ Input: ${JSON.stringify(texts)}`
 // tables) is translated as several smaller requests instead of one huge call
 // that can outrun the model's output limit and the platform's function
 // duration limit. Never splits inside a single top-level node.
-const MAX_CHUNK_CHARS = 15000
+const MAX_CHUNK_CHARS = 5000
 
 function chunkTopLevelNodes(nodes: LexicalNode[]): LexicalNode[][] {
   const chunks: LexicalNode[][] = []
@@ -177,7 +177,7 @@ export async function translateLexicalSection(
   const chunks = chunkTopLevelNodes(children)
 
   const translatedChunks: LexicalNode[][] = []
-  const CONCURRENCY = 4
+  const CONCURRENCY = 12
   for (let i = 0; i < chunks.length; i += CONCURRENCY) {
     const batch = chunks.slice(i, i + CONCURRENCY)
     const results = await Promise.all(
