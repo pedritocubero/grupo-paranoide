@@ -16,8 +16,15 @@ type Section = {
   sourceHash?: string
 }
 
-export async function POST(_req: Request, { params }: Params) {
+export async function POST(req: Request, { params }: Params) {
   const { id } = await params
+
+  // Optional cap on how many sections to translate in this invocation, so a
+  // chapter that's too big to finish inside the platform's function time
+  // limit can be translated across several calls instead of one.
+  const url = new URL(req.url)
+  const maxSectionsParam = url.searchParams.get('maxSections')
+  const maxSections = maxSectionsParam ? parseInt(maxSectionsParam, 10) : Infinity
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
@@ -53,41 +60,49 @@ export async function POST(_req: Request, { params }: Params) {
 
   let translated = 0
   let skipped = 0
+  let remaining = 0
 
-  const BATCH_SIZE = 5
   const resultSections: Section[] = []
 
-  for (let i = 0; i < sectionsEs.length; i += BATCH_SIZE) {
-    const batch = sectionsEs.slice(i, i + BATCH_SIZE)
-    const results = await Promise.all(
-      batch.map(async (section) => {
-        const { id: _id, ...rest } = section
-        const existingEn = enByBlockId.get(section.blockId)
+  for (const section of sectionsEs) {
+    const { id: _id, ...rest } = section
+    const existingEn = enByBlockId.get(section.blockId)
 
-        // Skip if already translated and sourceHash matches (content hasn't changed since last translation)
-        const hashUnchanged = existingEn?.sourceHash === section.sourceHash
-        const isAlreadyTranslated =
-          section.translationStatus !== 'stale' && existingEn?.content != null && hashUnchanged
+    // Skip if we already have an English version translated from this exact
+    // content (sourceHash match) — regardless of the editorial "stale" flag,
+    // so a chapter can be translated incrementally across several calls
+    // without re-translating sections a previous call already finished.
+    const hashUnchanged = existingEn?.sourceHash === section.sourceHash
+    const isAlreadyTranslated = existingEn?.content != null && hashUnchanged
 
-        if (isAlreadyTranslated) {
-          const { id: _enId, ...enRest } = existingEn!
-          skipped++
-          return enRest
-        }
+    if (isAlreadyTranslated) {
+      const { id: _enId, ...enRest } = existingEn!
+      skipped++
+      resultSections.push(enRest)
+      continue
+    }
 
-        if (!section.content) return rest
+    if (!section.content) {
+      resultSections.push(rest)
+      continue
+    }
 
-        try {
-          const translatedContent = await translateLexicalSection(section.content, glossary)
-          translated++
-          return { ...rest, content: translatedContent, translationStatus: 'auto' }
-        } catch (err) {
-          console.error(`Error translating section ${section.blockId}:`, err)
-          return rest
-        }
-      }),
-    )
-    resultSections.push(...results)
+    if (translated >= maxSections) {
+      // Left for a follow-up call: keep whatever English content already
+      // exists (even if stale/missing) rather than losing the section.
+      remaining++
+      resultSections.push(existingEn ? (({ id: _enId, ...enRest }) => enRest)(existingEn) : rest)
+      continue
+    }
+
+    try {
+      const translatedContent = await translateLexicalSection(section.content, glossary)
+      translated++
+      resultSections.push({ ...rest, content: translatedContent, translationStatus: 'auto' })
+    } catch (err) {
+      console.error(`Error translating section ${section.blockId}:`, err)
+      resultSections.push(rest)
+    }
   }
 
   // Translate title/subtitle only if not already done
@@ -124,5 +139,5 @@ export async function POST(_req: Request, { params }: Params) {
     },
   })
 
-  return NextResponse.json({ ok: true, sectionsTranslated: translated, sectionsSkipped: skipped })
+  return NextResponse.json({ ok: true, sectionsTranslated: translated, sectionsSkipped: skipped, sectionsRemaining: remaining })
 }
