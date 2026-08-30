@@ -4,6 +4,7 @@ import type { SerializedEditorState } from 'lexical'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 type Params = { params: Promise<{ id: string }> }
 
