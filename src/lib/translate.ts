@@ -103,16 +103,43 @@ Input: ${JSON.stringify(texts)}`
   return translated ?? texts
 }
 
-export async function translateLexicalSection(
-  content: SerializedEditorState,
-  glossary: GlossaryEntry[],
-): Promise<SerializedEditorState> {
-  const root = content.root as unknown as LexicalNode
-  const { marked, count } = buildMarkedString(root)
+// Group top-level nodes (paragraphs, headings, tables, quotes...) into chunks
+// bounded by size, so a single very long section (e.g. one packed with many
+// tables) is translated as several smaller requests instead of one huge call
+// that can outrun the model's output limit and the platform's function
+// duration limit. Never splits inside a single top-level node.
+const MAX_CHUNK_CHARS = 15000
 
-  if (count === 0) return content
+function chunkTopLevelNodes(nodes: LexicalNode[]): LexicalNode[][] {
+  const chunks: LexicalNode[][] = []
+  let current: LexicalNode[] = []
+  let currentSize = 0
 
-  const glossaryBlock = buildGlossaryBlock(glossary)
+  for (const node of nodes) {
+    const size = JSON.stringify(node).length
+    if (current.length > 0 && currentSize + size > MAX_CHUNK_CHARS) {
+      chunks.push(current)
+      current = []
+      currentSize = 0
+    }
+    current.push(node)
+    currentSize += size
+  }
+  if (current.length > 0) chunks.push(current)
+
+  return chunks
+}
+
+async function translateNodeChunk(
+  chunk: LexicalNode[],
+  chunkRootTemplate: LexicalNode,
+  glossaryBlock: string,
+): Promise<LexicalNode[]> {
+  const chunkRoot: LexicalNode = { ...chunkRootTemplate, children: chunk }
+  const { marked, count } = buildMarkedString(chunkRoot)
+
+  if (count === 0) return chunk
+
   const prompt = `You are a literary translator. Translate the Spanish text to English.
 The text contains numbered markers 【0】…【/0】, 【1】…【/1】, etc.
 Return the COMPLETE text with ALL ${count} markers preserved exactly as-is.
@@ -136,6 +163,29 @@ ${marked}`
     )
   }
 
-  const newRoot = applyTranslations(root, translations, { i: 0 })
-  return { ...content, root: newRoot as SerializedEditorState['root'] }
+  const newChunkRoot = applyTranslations(chunkRoot, translations, { i: 0 })
+  return newChunkRoot.children as LexicalNode[]
+}
+
+export async function translateLexicalSection(
+  content: SerializedEditorState,
+  glossary: GlossaryEntry[],
+): Promise<SerializedEditorState> {
+  const root = content.root as unknown as LexicalNode
+  const children = root.children ?? []
+  const glossaryBlock = buildGlossaryBlock(glossary)
+  const chunks = chunkTopLevelNodes(children)
+
+  const translatedChunks: LexicalNode[][] = []
+  const CONCURRENCY = 4
+  for (let i = 0; i < chunks.length; i += CONCURRENCY) {
+    const batch = chunks.slice(i, i + CONCURRENCY)
+    const results = await Promise.all(
+      batch.map((chunk) => translateNodeChunk(chunk, root, glossaryBlock)),
+    )
+    translatedChunks.push(...results)
+  }
+
+  const translatedChildren = translatedChunks.flat()
+  return { ...content, root: { ...root, children: translatedChildren } as SerializedEditorState['root'] }
 }
