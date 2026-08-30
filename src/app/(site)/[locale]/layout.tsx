@@ -8,7 +8,7 @@ type Props = {
 
 const NAV_LINKS = [
   { href: '/capitulos', es: 'El grupo paranoide', en: 'The Paranoid Group' },
-  { href: '/obstinaciones', es: 'Obstinaciones', en: 'Obsessions' },
+  { href: '/obstinaciones', es: 'Obstinaciones', en: 'Obstinacies' },
   { href: '/depresion', es: 'Depresión', en: 'Depression' },
   { href: '/sobre-mi', es: 'Sobre mí', en: 'About me' },
 ]
