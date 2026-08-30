@@ -130,6 +130,56 @@ function chunkTopLevelNodes(nodes: LexicalNode[]): LexicalNode[][] {
   return chunks
 }
 
+async function requestMarkedTranslation(
+  marked: string,
+  count: number,
+  glossaryBlock: string,
+): Promise<string[] | null> {
+  const prompt = `You are a literary translator. Translate the Spanish text to English.
+The text contains numbered markers 【0】…【/0】, 【1】…【/1】, etc.
+Return the COMPLETE text with ALL ${count} markers preserved exactly as-is.
+Only translate the content between the markers — never modify the markers themselves.${glossaryBlock}
+
+Text to translate:
+${marked}`
+
+  const message = await client.messages.create({
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const raw = (message.content[0] as { type: string; text: string }).text.trim()
+  return parseMarkedTranslations(raw, count)
+}
+
+function collectPlainText(node: LexicalNode): string {
+  if (node.type === 'text') return node.text ?? ''
+  if (Array.isArray(node.children)) return node.children.map(collectPlainText).join('')
+  return ''
+}
+
+// Last-resort path for a single node whose per-run text markers the model
+// can't reliably reproduce (e.g. a quotation split into several styled runs
+// around one highlighted word). Translates the node's full text as one
+// block and puts it in the first text child, dropping the inline
+// formatting boundaries between runs — better than losing the section.
+async function degradeTranslateSingleNode(node: LexicalNode, glossaryBlock: string): Promise<LexicalNode> {
+  const plainText = collectPlainText(node)
+  if (!plainText.trim() || !Array.isArray(node.children)) return node
+
+  const firstText = node.children.find((c) => c.type === 'text')
+  if (!firstText) return node
+
+  const translations = await requestMarkedTranslation(`【0】${plainText}【/0】`, 1, glossaryBlock)
+  const translatedText = translations ? translations[0] : plainText
+
+  return {
+    ...node,
+    children: [{ ...firstText, text: translatedText }],
+  }
+}
+
 async function translateNodeChunk(
   chunk: LexicalNode[],
   chunkRootTemplate: LexicalNode,
@@ -140,34 +190,27 @@ async function translateNodeChunk(
 
   if (count === 0) return chunk
 
-  const prompt = `You are a literary translator. Translate the Spanish text to English.
-The text contains numbered markers 【0】…【/0】, 【1】…【/1】, etc.
-Return the COMPLETE text with ALL ${count} markers preserved exactly as-is.
-Only translate the content between the markers — never modify the markers themselves.${glossaryBlock}
-
-Text to translate:
-${marked}`
-
-  let lastError: Error | null = null
   for (let attempt = 0; attempt < 3; attempt++) {
-    const message = await client.messages.create({
-      model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
-      max_tokens: 8192,
-      messages: [{ role: 'user', content: prompt }],
-    })
-
-    const raw = (message.content[0] as { type: string; text: string }).text.trim()
-    const translations = parseMarkedTranslations(raw, count)
-
+    const translations = await requestMarkedTranslation(marked, count, glossaryBlock)
     if (translations) {
       const newChunkRoot = applyTranslations(chunkRoot, translations, { i: 0 })
       return newChunkRoot.children as LexicalNode[]
     }
-
-    lastError = new Error(`Marker mismatch: expected ${count} markers. Response: ${raw.slice(0, 300)}`)
   }
 
-  throw lastError
+  // The group of nodes consistently confuses the marker-based translation
+  // (usually one node with an odd run structure). Retry node-by-node so a
+  // single problem node doesn't take its neighbors down with it.
+  if (chunk.length > 1) {
+    const results: LexicalNode[] = []
+    for (const node of chunk) {
+      results.push(...(await translateNodeChunk([node], chunkRootTemplate, glossaryBlock)))
+    }
+    return results
+  }
+
+  console.error(`Falling back to plain-text translation for a node that failed marker matching 3 times.`)
+  return [await degradeTranslateSingleNode(chunk[0], glossaryBlock)]
 }
 
 export async function translateLexicalSection(
