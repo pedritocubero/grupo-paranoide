@@ -67,6 +67,11 @@ export default async function CapitulosPage({ params }: Props) {
               new observations and reflections, and have tried to improve the clarity of exposition.
               The text offered here is the result of that effort.
             </p>
+            <p>Paranoid behavior is intrinsically a social phenomenon.</p>
+            <p>
+              Even in the smallest paranoid group of all, that of a single individual, there is at
+              all times a potential for growth.
+            </p>
             <p>The aim of the book is to convey five simple ideas:</p>
             <ol className="list-decimal pl-6 space-y-3">
               <li>
@@ -128,6 +133,11 @@ export default async function CapitulosPage({ params }: Props) {
               Desde esa fecha no he dejado de revisarlo, una y otra vez. A trompicones, he ido añadiendo
               nuevas observaciones y reflexiones, y he intentado mejorar la claridad expositiva. El texto
               que aquí se ofrece es el resultado de ese esfuerzo.
+            </p>
+            <p>La conducta paranoide es intrínsecamente un fenómeno social.</p>
+            <p>
+              Incluso en el grupo paranoide más reducido de todos, el de un solo individuo, existe
+              en todo momento un potencial de crecimiento.
             </p>
             <p>El objetivo del libro es transmitir cinco simples ideas:</p>
             <ol className="list-decimal pl-6 space-y-3">
