@@ -200,6 +200,15 @@ export default async function CapitulosPage({ params }: Props) {
         </div>
       </details>
 
+      <div className="text-center mb-16">
+        <a
+          href={`/api/libro-pdf?locale=${locale}`}
+          className="font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors"
+        >
+          {locale === 'es' ? '↓ Descargar libro completo (PDF)' : '↓ Download full book (PDF)'}
+        </a>
+      </div>
+
       <div className="space-y-12">
         {byPart.map(({ part, label, chapters: partChapters }) => (
           <section key={part} id={`parte-${part.toLowerCase()}`}>
