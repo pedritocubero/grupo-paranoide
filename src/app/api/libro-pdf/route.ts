@@ -21,6 +21,7 @@ export async function GET(req: Request) {
     locale,
     sort: 'order',
     limit: 100,
+    where: { part: { in: ['I', 'II', 'III'] } },
   })
 
   const chaptersData = chapters.map((chapter) => ({

@@ -342,11 +342,16 @@ type Chapter = {
   title: unknown
   subtitle?: unknown
   order: unknown
+  part?: unknown
   sections?: Array<{
     blockId: string
     content?: SerializedEditorState | null
   }>
   references?: Reference[]
+}
+
+const BOOK_TITLES: Record<string, { es: string; en: string }> = {
+  obstinaciones: { es: 'Obstinaciones', en: 'Obstinaciones' },
 }
 
 export function ChapterDocument({
@@ -356,6 +361,8 @@ export function ChapterDocument({
   chapter: Chapter
   locale: string
 }) {
+  const bookTitle =
+    BOOK_TITLES[chapter.part as string]?.[locale as 'es' | 'en'] ?? 'El grupo paranoide'
   const chapterLabel = locale === 'es' ? 'Capítulo' : 'Chapter'
   const tocLabel = locale === 'es' ? 'ÍNDICE' : 'CONTENTS'
   const refsLabel = locale === 'es' ? 'REFERENCIAS' : 'REFERENCES'
@@ -367,13 +374,13 @@ export function ChapterDocument({
     <Document
       title={chapter.title as string}
       author="Pedro Cubero Bros"
-      subject="El grupo paranoide"
+      subject={bookTitle}
       language={locale}
     >
       {/* Cover page */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.coverInner}>
-          <Text style={styles.coverBookTitle}>El grupo paranoide</Text>
+          <Text style={styles.coverBookTitle}>{bookTitle}</Text>
           <Text style={styles.coverChapterNum}>
             {chapterLabel} {chapter.order as number}
           </Text>

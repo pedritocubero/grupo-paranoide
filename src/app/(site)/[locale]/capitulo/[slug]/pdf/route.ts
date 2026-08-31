@@ -39,6 +39,7 @@ export async function GET(
     title: chapter.title,
     subtitle: chapter.subtitle,
     order: chapter.order,
+    part: chapter.part,
     sections,
     references,
   }
