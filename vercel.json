@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "src/app/api/libro-pdf/route.ts": {
+      "memory": 3009,
+      "maxDuration": 60
+    }
+  }
+}
