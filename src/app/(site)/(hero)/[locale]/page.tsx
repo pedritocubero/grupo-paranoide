@@ -25,7 +25,7 @@ export default async function LandingPage({ params }: Props) {
           priority
         />
         <div className="absolute inset-0 bg-black/30" />
-        <div className="relative z-10 text-center text-white px-6 pt-24 md:pt-32">
+        <div className="relative z-10 text-center text-white px-6 pt-[7.5rem] md:pt-40">
           <h1 className="font-serif text-6xl md:text-7xl leading-tight">
             {isEn ? 'The Paranoid Group' : 'El grupo paranoide'}
           </h1>
