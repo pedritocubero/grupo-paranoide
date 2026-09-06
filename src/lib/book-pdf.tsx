@@ -1,9 +1,9 @@
-import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { SerializedEditorState } from 'lexical'
 import React from 'react'
 
-// Evita que palabras como "obstinada" se corten con un guion al final de línea.
-Font.registerHyphenationCallback((word) => [word])
+// Evita que una palabra del título de portadilla de capítulo se corte con un guion al final de línea.
+const noHyphenation = (word: string) => [word]
 
 type LexicalNode = {
   type: string
@@ -195,7 +195,9 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
           <Page size="A4" style={styles.chapterCoverPage}>
             <View style={styles.chapterCoverInner}>
               <Text style={styles.chapterNum}>{chapterLabel} {chapter.order}</Text>
-              <Text style={styles.chapterTitle}>{chapter.title}</Text>
+              <Text style={styles.chapterTitle} hyphenationCallback={noHyphenation}>
+                {chapter.title}
+              </Text>
               {chapter.subtitle ? (
                 <Text style={styles.chapterSubtitle}>{chapter.subtitle}</Text>
               ) : null}
