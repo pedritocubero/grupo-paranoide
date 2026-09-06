@@ -210,6 +210,16 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: '#bbbbbb',
   },
+  pageNumber: {
+    position: 'absolute',
+    bottom: 24,
+    left: 72,
+    right: 72,
+    textAlign: 'center',
+    fontFamily: 'Helvetica',
+    fontSize: 8,
+    color: '#999999',
+  },
 })
 
 function renderInline(children: LexicalNode[]): React.ReactNode {
@@ -409,6 +419,11 @@ export function ChapterDocument({
               {h.text}
             </Text>
           ))}
+          <Text
+            style={styles.pageNumber}
+            fixed
+            render={({ pageNumber }) => String(pageNumber)}
+          />
         </Page>
       )}
 
@@ -437,6 +452,11 @@ export function ChapterDocument({
         <Text style={styles.footer} fixed>
           elgrupoparanoide.com
         </Text>
+        <Text
+          style={styles.pageNumber}
+          fixed
+          render={({ pageNumber }) => String(pageNumber)}
+        />
       </Page>
     </Document>
   )
