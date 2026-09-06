@@ -1,6 +1,9 @@
-import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { SerializedEditorState } from 'lexical'
 import React from 'react'
+
+// Evita que palabras como "obstinada" se corten con un guion al final de línea.
+Font.registerHyphenationCallback((word) => [word])
 
 type LexicalNode = {
   type: string
