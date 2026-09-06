@@ -1,0 +1,24 @@
+diff --git a/node_modules/@react-pdf/pdfkit/lib/pdfkit.js b/node_modules/@react-pdf/pdfkit/lib/pdfkit.js
+index 3619d74..bf18893 100644
+--- a/node_modules/@react-pdf/pdfkit/lib/pdfkit.js
++++ b/node_modules/@react-pdf/pdfkit/lib/pdfkit.js
+@@ -2858,6 +2858,19 @@ var VectorMixin = {
+     return this.addContent(`W${this._windingRule(rule)} n`);
+   },
+   transform(m11, m12, m21, m22, dx, dy) {
++    // Parche: @react-pdf/layout a veces calcula una coordenada absurda
++    // (NaN/Infinity o un número gigantesco) cuando un bloque de texto cae
++    // justo en un salto de página, lo que antes reventaba el PDF entero al
++    // serializar ese número; ver https://github.com/diegomura/react-pdf/issues/1853
++    // y .../issues/3277 (sin arreglo oficial). Se sanea aquí, en el origen,
++    // en vez de en PDFObject.number: así el valor corrupto nunca contamina
++    // la matriz de transformación (_ctm), que de lo contrario arrastraría
++    // ese valor absurdo al resto del bloque y disparaba el tiempo de
++    // generación del PDF.
++    const isBad = (v) => !Number.isFinite(v) || Math.abs(v) > 1e6
++    if (isBad(m11) || isBad(m12) || isBad(m21) || isBad(m22) || isBad(dx) || isBad(dy)) {
++      return this
++    }
+     // keep track of the current transformation matrix
+     if (m11 === 1 && m12 === 0 && m21 === 0 && m22 === 1 && dx === 0 && dy === 0) {
+       // Ignore identity transforms

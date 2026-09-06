@@ -82,6 +82,10 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 40, left: 72, right: 72,
     textAlign: 'center', fontFamily: 'Helvetica', fontSize: 7, color: '#bbbbbb',
   },
+  pageNumber: {
+    position: 'absolute', bottom: 24, left: 72, right: 72,
+    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 8, color: '#999999',
+  },
 })
 
 function renderInline(children: LexicalNode[]): React.ReactNode {
@@ -202,6 +206,11 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
                 <Text style={styles.chapterSubtitle}>{chapter.subtitle}</Text>
               ) : null}
             </View>
+            <Text
+              style={styles.pageNumber}
+              fixed
+              render={({ pageNumber }) => String(pageNumber)}
+            />
           </Page>
 
           {/* Contenido del capítulo */}
@@ -212,6 +221,11 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
             <Text style={styles.footer} fixed>
               El grupo paranoide · Pedro Cubero Bros · elgrupoparanoide.com
             </Text>
+            <Text
+              style={styles.pageNumber}
+              fixed
+              render={({ pageNumber }) => String(pageNumber)}
+            />
           </Page>
         </React.Fragment>
       ))}
