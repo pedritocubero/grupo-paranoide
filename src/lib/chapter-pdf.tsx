@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Times-Italic',
     fontSize: 11,
     marginTop: 12,
-    marginBottom: 4,
+    marginBottom: 8,
     lineHeight: 1.3,
   },
   quote: {

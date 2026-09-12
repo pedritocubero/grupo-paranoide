@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   paragraph: { marginBottom: 8 },
   heading2: { fontFamily: 'Times-Bold', fontSize: 14, marginTop: 22, marginBottom: 8, lineHeight: 1.3 },
   heading3: { fontFamily: 'Times-Bold', fontSize: 12, marginTop: 16, marginBottom: 6, lineHeight: 1.3 },
-  heading4: { fontFamily: 'Times-Italic', fontSize: 11, marginTop: 12, marginBottom: 4, lineHeight: 1.3 },
+  heading4: { fontFamily: 'Times-Italic', fontSize: 11, marginTop: 12, marginBottom: 8, lineHeight: 1.3 },
   quote: { marginLeft: 24, marginRight: 24, marginBottom: 8, fontFamily: 'Times-Italic' },
   listView: { marginBottom: 8 },
   listItem: { flexDirection: 'row', marginBottom: 4 },
