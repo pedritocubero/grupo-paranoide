@@ -106,7 +106,7 @@ function renderInline(children: LexicalNode[]): React.ReactNode {
   })
 }
 
-function renderBlock(node: LexicalNode, key: string): React.ReactNode {
+function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string, unknown>): React.ReactNode {
   switch (node.type) {
     case 'paragraph': {
       const children = node.children ?? []
@@ -116,10 +116,10 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
     case 'heading': {
       const tag = (node.tag as string) ?? 'h2'
       const style = tag === 'h2' ? styles.heading2 : tag === 'h3' ? styles.heading3 : styles.heading4
-      return <View key={key} style={style}><Text>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...style, ...extraStyle }}><Text>{renderInline(node.children ?? [])}</Text></View>
     }
     case 'quote':
-      return <View key={key} style={styles.quote}><Text>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text>{renderInline(node.children ?? [])}</Text></View>
     case 'list': {
       const isOrdered = node.listType === 'number'
       return (
@@ -176,7 +176,20 @@ function renderBlock(node: LexicalNode, key: string): React.ReactNode {
 
 function renderLexical(content: SerializedEditorState): React.ReactNode[] {
   const root = content.root as unknown as LexicalNode
-  return (root.children ?? []).map((child, i) => renderBlock(child, String(i)))
+  const children = root.children ?? []
+  return children.map((child, i) => renderBlock(child, String(i), blockExtraStyle(child, children[i + 1])))
+}
+
+// Epígrafe (h4) justo antes de una cita: se alinea con su sangría y se pega a ella.
+// Párrafos consecutivos de una misma cita larga: sin hueco extra entre ellos.
+function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, unknown> | undefined {
+  if (node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') {
+    return { marginLeft: 24, marginBottom: 0 }
+  }
+  if (node.type === 'quote' && next?.type === 'quote') {
+    return { marginBottom: 0 }
+  }
+  return undefined
 }
 
 export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; locale: string }) {
