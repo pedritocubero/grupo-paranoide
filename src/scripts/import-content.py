@@ -80,15 +80,6 @@ def plain_text_nodes(para) -> list:
     text = para.text.strip().rstrip(".,;:")
     return [text_node(text)] if text else []
 
-def strip_italic(nodes: list) -> list:
-    """Elimina el flag de cursiva de los nodos de texto (formato inline dentro de citas)."""
-    result = []
-    for node in nodes:
-        if node.get('type') == 'text':
-            node = {**node, 'format': node.get('format', 0) & ~2}  # quita el bit 2 (italic)
-        result.append(node)
-    return result
-
 def paragraph_node(children: list, indent: int = 0) -> dict:
     return {
         "type": "paragraph",
@@ -468,7 +459,7 @@ def section_to_lexical(paras: list) -> dict:
 
         # Cita larga: bloque de cita por estilo explícito
         if para.style.name == "Cita larga":
-            nodes.append(quote_node(strip_italic(para_to_inline_nodes(para))))
+            nodes.append(quote_node(para_to_inline_nodes(para)))
             continue
 
         # Detectar indicadores de cita antes de la detección de encabezado,
@@ -494,13 +485,13 @@ def section_to_lexical(paras: list) -> dict:
             nodes.append(paragraph_node(inline, indent=1))
         elif text.startswith(quote_starters):
             # Empieza por comilla → cita, independiente del tamaño/sangría
-            nodes.append(quote_node(strip_italic(inline)))
+            nodes.append(quote_node(inline))
         elif is_quote_candidate:
             # Párrafo corto sin comillas iniciales → etiqueta/referencia, no cita
             if len(text) <= 80:
                 nodes.append(paragraph_node(inline))
             else:
-                nodes.append(quote_node(strip_italic(inline)))
+                nodes.append(quote_node(inline))
         else:
             nodes.append(paragraph_node(inline))
 

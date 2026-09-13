@@ -78,7 +78,11 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
     }
     el.querySelectorAll('blockquote').forEach((bq) => {
       const prev = bq.previousElementSibling
-      if (prev?.tagName === 'P') stripTrailingPeriod(prev)
+      if (prev?.tagName !== 'P') return
+      stripTrailingPeriod(prev)
+      // Etiqueta corta (p.ej. "Personalidad anal-erótica. Ernest Jones.") pegada a su cita:
+      // mismo umbral de 80 caracteres que usa el importador para distinguir etiqueta de cita.
+      prev.classList.toggle('quote-label', (prev.textContent ?? '').trim().length <= 80)
     })
     el.querySelectorAll('h2, h3, h4').forEach((heading) => {
       stripTrailingPeriod(heading)

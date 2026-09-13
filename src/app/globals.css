@@ -111,11 +111,6 @@ body {
   margin-top: 1.4em;
   margin-bottom: 1.4em;
   color: #78716c;
-  font-style: italic;
-}
-
-.prose blockquote em {
-  font-style: normal;
 }
 
 .prose blockquote + blockquote {
@@ -126,11 +121,11 @@ body {
   margin-bottom: 0;
 }
 
-.prose p + blockquote {
+.prose p.quote-label + blockquote {
   margin-top: 0.3em;
 }
 
-.prose p:has(+ blockquote) {
+.prose p.quote-label:has(+ blockquote) {
   margin-bottom: 0.3em;
 }
 

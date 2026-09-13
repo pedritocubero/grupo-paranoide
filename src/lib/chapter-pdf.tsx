@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     marginLeft: 24,
     marginRight: 24,
     marginBottom: 8,
-    fontFamily: 'Times-Italic',
   },
   listView: {
     marginBottom: 8,
