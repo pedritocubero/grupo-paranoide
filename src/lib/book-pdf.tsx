@@ -1,9 +1,17 @@
-import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { SerializedEditorState } from 'lexical'
+import path from 'path'
 import React from 'react'
 
 // Evita que una palabra del título de portadilla de capítulo se corte con un guion al final de línea.
 const noHyphenation = (word: string) => [word]
+
+// Las fuentes Times estándar del PDF no incluyen flechas ni operadores
+// matemáticos (ver SYMBOL_CHAR más abajo); esta fuente sí los tiene.
+Font.register({
+  family: 'Symbols',
+  src: path.join(process.cwd(), 'public', 'fonts', 'NotoSansMath-symbols.ttf'),
+})
 
 type LexicalNode = {
   type: string
@@ -88,6 +96,30 @@ const styles = StyleSheet.create({
   },
 })
 
+// Flechas (→ ⇒ ...) y operadores matemáticos (≈ ≠ ...): las fuentes Times de
+// PDF (WinAnsi) no tienen esos glifos y los corrompen en silencio. La fuente
+// "Symbols" registrada arriba sí los soporta, así que esos caracteres sueltos
+// se pintan con ella y el resto del texto sigue con la fuente normal.
+const SYMBOL_CHAR = /[←-⇿∀-⋿]/
+
+function renderTextWithSymbols(text: string, key: string, fontFamily?: string): React.ReactNode {
+  if (!SYMBOL_CHAR.test(text)) {
+    return <Text key={key} style={fontFamily ? { fontFamily } : undefined}>{text}</Text>
+  }
+  const parts = text.split(new RegExp(`(${SYMBOL_CHAR.source})`))
+  return (
+    <Text key={key} style={fontFamily ? { fontFamily } : undefined}>
+      {parts.map((part, i) =>
+        SYMBOL_CHAR.test(part) ? (
+          <Text key={i} style={{ fontFamily: 'Symbols' }}>{part}</Text>
+        ) : (
+          part
+        ),
+      )}
+    </Text>
+  )
+}
+
 function renderInline(children: LexicalNode[]): React.ReactNode {
   return children.map((node, i) => {
     if (node.type === 'text') {
@@ -98,7 +130,7 @@ function renderInline(children: LexicalNode[]): React.ReactNode {
       if (isBold && isItalic) fontFamily = 'Times-BoldItalic'
       else if (isBold) fontFamily = 'Times-Bold'
       else if (isItalic) fontFamily = 'Times-Italic'
-      return <Text key={i} style={fontFamily ? { fontFamily } : undefined}>{node.text ?? ''}</Text>
+      return renderTextWithSymbols(node.text ?? '', String(i), fontFamily)
     }
     if (node.type === 'linebreak') return <Text key={i}>{'\n'}</Text>
     if (node.children?.length) return <Text key={i}>{renderInline(node.children)}</Text>

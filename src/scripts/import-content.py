@@ -55,11 +55,44 @@ def text_node(text: str, bold=False, italic=False, underline=False, color=None) 
         "version": 1,
     }
 
+# Códigos de la fuente "Symbol" de Word (<w:sym w:char="...">) → Unicode.
+# Word inserta así ciertos caracteres especiales (flechas, ≈, etc.) en vez de
+# como texto normal; python-docx los ignora por completo (run.text/para.text
+# no los incluye), así que hay que traducirlos a mano. Tabla estándar de la
+# codificación PostScript Symbol.
+SYMBOL_FONT_MAP = {
+    0xAB: '↔', 0xAC: '←', 0xAD: '↑', 0xAE: '→', 0xAF: '↓',
+    0xB1: '±', 0xB3: '≥', 0xB4: '×', 0xB8: '÷', 0xB9: '≠',
+    0xBA: '≡', 0xBB: '≈',
+    0xDB: '⇔', 0xDC: '⇐', 0xDD: '⇑', 0xDE: '⇒', 0xDF: '⇓',
+}
+
+def run_text(run) -> str:
+    """Como run.text, pero incluyendo los caracteres de <w:sym> traducidos vía SYMBOL_FONT_MAP."""
+    parts = []
+    for child in run._r:
+        tag = child.tag
+        if tag == qn('w:t'):
+            parts.append(child.text or '')
+        elif tag == qn('w:sym'):
+            code = int(child.get(qn('w:char')), 16) & 0xFF
+            parts.append(SYMBOL_FONT_MAP.get(code, ''))
+        elif tag == qn('w:tab'):
+            parts.append('\t')
+        elif tag in (qn('w:br'), qn('w:cr')):
+            parts.append('\n')
+    return ''.join(parts)
+
+def full_para_text(para) -> str:
+    """Como para.text, pero incluyendo los caracteres de <w:sym> (ver run_text)."""
+    return ''.join(run_text(r) for r in para.runs)
+
 def para_to_inline_nodes(para) -> list:
     """Convierte los runs de un párrafo en nodos de texto con formato."""
     nodes = []
     for run in para.runs:
-        if not run.text:
+        text = run_text(run)
+        if not text:
             continue
         bold    = bool(run.bold)
         italic  = bool(run.italic)
@@ -70,14 +103,14 @@ def para_to_inline_nodes(para) -> list:
                 color = str(run.font.color.rgb)
         except Exception:
             pass
-        nodes.append(text_node(run.text, bold=bold, italic=italic, underline=underline, color=color))
-    if not nodes and para.text.strip():
-        nodes = [text_node(para.text)]
+        nodes.append(text_node(text, bold=bold, italic=italic, underline=underline, color=color))
+    if not nodes and full_para_text(para).strip():
+        nodes = [text_node(full_para_text(para))]
     return nodes
 
 def plain_text_nodes(para) -> list:
     """Texto plano sin formato — para encabezados (el nivel ya lo da el tag)."""
-    text = para.text.strip().rstrip(".,;:")
+    text = full_para_text(para).strip().rstrip(".,;:")
     return [text_node(text)] if text else []
 
 def paragraph_node(children: list, indent: int = 0) -> dict:
