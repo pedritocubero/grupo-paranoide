@@ -93,36 +93,62 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
       heading.id = count === 0 ? base : `${base}-${count}`
     })
 
-    // Convertir (N) en links a #ref-N cuando N es una referencia válida
+    // Convertir (N) en links a #ref-N cuando N es una referencia válida.
+    // El número de una cita puede llegar en un nodo de texto separado del resto
+    // de la frase (Word divide el párrafo en "runs" por motivos internos, aunque
+    // no haya ningún cambio de estilo visible), así que buscamos el patrón "(N)"
+    // en el texto completo de cada bloque (párrafo/cita/lista/celda) en vez de
+    // nodo de texto por nodo de texto.
     const validNums = new Set((data.references ?? []).map((r) => String(r.num)))
     if (validNums.size > 0) {
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-      const textNodes: Text[] = []
-      let node: Node | null
-      while ((node = walker.nextNode())) textNodes.push(node as Text)
+      const blockSelector = 'p, blockquote, li, td, th, h2, h3, h4'
+      const allBlocks = Array.from(el.querySelectorAll(blockSelector)) as HTMLElement[]
+      const leafBlocks = allBlocks.filter((b) => !b.querySelector(blockSelector))
 
-      for (const textNode of textNodes) {
-        if (textNode.parentElement?.closest('a')) continue
-        const text = textNode.textContent ?? ''
-        if (!/\(\d+\)/.test(text)) continue
-
-        const parts = text.split(/(\(\d+\))/)
-        if (parts.length <= 1) continue
-
-        const span = document.createElement('span')
-        for (const part of parts) {
-          const m = part.match(/^\((\d+)\)$/)
-          if (m && validNums.has(m[1])) {
-            const a = document.createElement('a')
-            a.href = `#ref-${m[1]}`
-            a.className = 'citation-link'
-            a.textContent = part
-            span.appendChild(a)
-          } else {
-            span.appendChild(document.createTextNode(part))
-          }
+      for (const block of leafBlocks) {
+        const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT)
+        const textNodes: Text[] = []
+        const offsets: number[] = []
+        let combined = ''
+        let node: Node | null
+        while ((node = walker.nextNode())) {
+          const tn = node as Text
+          if (tn.parentElement?.closest('a')) continue
+          offsets.push(combined.length)
+          textNodes.push(tn)
+          combined += tn.textContent ?? ''
         }
-        textNode.parentNode?.replaceChild(span, textNode)
+        if (!/\(\d+\)/.test(combined)) continue
+
+        const matches: { start: number; end: number; num: string }[] = []
+        const re = /\((\d+)\)/g
+        let m: RegExpExecArray | null
+        while ((m = re.exec(combined))) {
+          if (validNums.has(m[1])) matches.push({ start: m.index, end: m.index + m[0].length, num: m[1] })
+        }
+        if (matches.length === 0) continue
+
+        const locate = (globalOffset: number) => {
+          for (let i = textNodes.length - 1; i >= 0; i--) {
+            if (globalOffset >= offsets[i]) return { node: textNodes[i], offset: globalOffset - offsets[i] }
+          }
+          return { node: textNodes[0], offset: 0 }
+        }
+
+        // De atrás hacia adelante para no invalidar los offsets ya calculados al mutar el DOM
+        for (let i = matches.length - 1; i >= 0; i--) {
+          const { start, end, num } = matches[i]
+          const from = locate(start)
+          const to = locate(end)
+          const range = document.createRange()
+          range.setStart(from.node, from.offset)
+          range.setEnd(to.node, to.offset)
+          const a = document.createElement('a')
+          a.href = `#ref-${num}`
+          a.className = 'citation-link'
+          a.appendChild(range.extractContents())
+          range.insertNode(a)
+        }
       }
     }
   }, [sections, data.references])
