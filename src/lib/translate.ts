@@ -77,6 +77,12 @@ function buildGlossaryBlock(terms: GlossaryEntry[]): string {
   return `\nGlossary (always use these exact translations):\n${lines.join('\n')}\n`
 }
 
+function extractText(message: Anthropic.Message): string {
+  const block = message.content.find((b): b is Anthropic.TextBlock => b.type === 'text')
+  if (!block) throw new Error('Claude response contained no text block')
+  return block.text.trim()
+}
+
 function parseTaggedTranslations(raw: string, expected: number): string[] | null {
   const matches = [...raw.matchAll(/<T>([\s\S]*?)<\/T>/g)]
   if (matches.length !== expected) return null
@@ -93,12 +99,12 @@ export async function translateStrings(
 Input: ${JSON.stringify(texts)}`
 
   const message = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
     max_tokens: 512,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const raw = (message.content[0] as { type: string; text: string }).text.trim()
+  const raw = extractText(message)
   const translated = parseTaggedTranslations(raw, texts.length)
   return translated ?? texts
 }
@@ -144,12 +150,12 @@ Text to translate:
 ${marked}`
 
   const message = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
     max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const raw = (message.content[0] as { type: string; text: string }).text.trim()
+  const raw = extractText(message)
   return parseMarkedTranslations(raw, count)
 }
 

@@ -27,7 +27,7 @@ Sistema de gestión y traducción de un libro de ensayo ("El grupo paranoide" de
 - Estructura de carpetas: `src/app` para páginas y API routes, `src/collections` para Payload, `src/lib` para utilidades (traducción, hashing, PDF).
 - Variables de entorno en `.env.local` (nunca en commits). Las listamos en `.env.example`.
 - Idiomas: siempre `['es', 'en']` con `es` como default. Aunque empecemos solo con inglés activo, la estructura multilingüe está desde el día 1.
-- Modelo de Claude para traducción: `claude-sonnet-4-6`. No hardcodear; leer de `process.env.ANTHROPIC_MODEL`.
+- Modelo de Claude para traducción: `claude-sonnet-5`. No hardcodear; leer de `process.env.ANTHROPIC_MODEL`.
 
 ## Glosario del libro (para traducción y para entender el dominio)
 
