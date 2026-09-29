@@ -20,8 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
   const chapter = docs[0]
   if (!chapter) return {}
+  const bookName =
+    (chapter.part as string) === 'obstinaciones'
+      ? locale === 'es'
+        ? 'Obstinaciones'
+        : 'Obstinacies'
+      : 'El grupo paranoide'
   return {
-    title: `${chapter.title as string} — El grupo paranoide`,
+    title: `${chapter.title as string} — ${bookName}`,
   }
 }
 
