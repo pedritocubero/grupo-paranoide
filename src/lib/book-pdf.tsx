@@ -226,13 +226,14 @@ function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, 
 
 export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; locale: string }) {
   const chapterLabel = locale === 'es' ? 'Capítulo' : 'Chapter'
+  const bookTitle = locale === 'es' ? 'El grupo paranoide' : 'The Paranoid Group'
 
   return (
-    <Document title="El grupo paranoide" author="Pedro Cubero Bros" language={locale}>
+    <Document title={bookTitle} author="Pedro Cubero Bros" language={locale}>
       {/* Portada del libro */}
       <Page size="A4" style={styles.bookCoverPage}>
         <View style={styles.bookCoverInner}>
-          <Text style={styles.bookCoverTitle}>El grupo paranoide</Text>
+          <Text style={styles.bookCoverTitle}>{bookTitle}</Text>
           <Text style={styles.bookCoverAuthor}>PEDRO CUBERO BROS</Text>
         </View>
       </Page>
@@ -264,7 +265,7 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
               section.content ? renderLexical(section.content) : null,
             )}
             <Text style={styles.footer} fixed>
-              El grupo paranoide · Pedro Cubero Bros · elgrupoparanoide.com
+              {bookTitle} · Pedro Cubero Bros · elgrupoparanoide.com
             </Text>
             <Text
               style={styles.pageNumber}
