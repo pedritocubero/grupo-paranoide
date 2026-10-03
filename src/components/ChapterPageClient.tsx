@@ -7,6 +7,7 @@ import type { SerializedEditorState } from 'lexical'
 import Link from 'next/link'
 import { TableOfContents } from '@/components/TableOfContents'
 import { extractHeadings } from '@/lib/headings'
+import { quoteCitationParagraphs } from '@/lib/citations'
 import { useEffect, useRef, useState } from 'react'
 import React from 'react'
 
@@ -225,7 +226,7 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
           <div className="prose" ref={proseRef}>
             {sections.map((section) => (
               <div key={section.blockId} className="section">
-                {section.content ? <RichText data={section.content} converters={richTextConverters} /> : null}
+                {section.content ? <RichText data={quoteCitationParagraphs(section.content)} converters={richTextConverters} /> : null}
               </div>
             ))}
           </div>
