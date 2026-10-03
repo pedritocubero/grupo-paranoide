@@ -512,7 +512,7 @@ def section_to_lexical(paras: list) -> dict:
             continue
 
         inline = para_to_inline_nodes(para)
-        quote_starters = ('"', '"', '«', '"', '[', '(', '—', '-')
+        quote_starters = ('"', '\u201c', '\u201d', '«', '[', '(', '—', '-')
 
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
