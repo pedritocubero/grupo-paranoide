@@ -143,7 +143,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
     case 'paragraph': {
       const children = node.children ?? []
       if (!children.length) return <View key={key} style={{ marginBottom: 8 }} />
-      return <View key={key} style={styles.paragraph}><Text>{renderInline(children)}</Text></View>
+      return <View key={key} style={{ ...styles.paragraph, ...extraStyle }}><Text>{renderInline(children)}</Text></View>
     }
     case 'heading': {
       const tag = (node.tag as string) ?? 'h2'
@@ -212,10 +212,17 @@ function renderLexical(content: SerializedEditorState): React.ReactNode[] {
   return children.map((child, i) => renderBlock(child, String(i), blockExtraStyle(child, children[i + 1])))
 }
 
+// Epígrafe de cita: párrafo corto (p.ej. "Paranoia") justo antes de una cita.
+function isQuoteLabel(node: LexicalNode, next?: LexicalNode): boolean {
+  if (node.type !== 'paragraph' || next?.type !== 'quote') return false
+  const text = (node.children ?? []).map((c) => (c.text as string) ?? '').join('').trim()
+  return text.length > 0 && text.length <= 80 && !/[:,]$/.test(text)
+}
+
 // Epígrafe (h4) justo antes de una cita: se alinea con su sangría y se pega a ella.
 // Párrafos consecutivos de una misma cita larga: sin hueco extra entre ellos.
 function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, unknown> | undefined {
-  if (node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') {
+  if ((node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') || isQuoteLabel(node, next)) {
     return { marginLeft: 24, marginBottom: 0 }
   }
   if (node.type === 'quote' && next?.type === 'quote') {
