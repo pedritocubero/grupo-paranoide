@@ -381,9 +381,17 @@ function renderBlock(
   }
 }
 
+// Cita guardada como párrafo normal (empieza por comillas y acaba en referencia "(2)"):
+// se trata como cita para que lleve su sangría y su epígrafe se le pegue.
+function asQuoteIfCitation(node: LexicalNode): LexicalNode {
+  if (node.type !== 'paragraph') return node
+  const text = (node.children ?? []).map((c) => (c.text as string) ?? '').join('').trim()
+  return /^[“"«]/.test(text) && /\(\d+([,–-]\s*\d+)*\)\.?$/.test(text) ? { ...node, type: 'quote' } : node
+}
+
 function renderLexical(content: SerializedEditorState): React.ReactNode[] {
   const root = content.root as unknown as LexicalNode
-  const children = root.children ?? []
+  const children = (root.children ?? []).map(asQuoteIfCitation)
   return children.map((child, i) => renderBlock(child, String(i), blockExtraStyle(child, children[i + 1])))
 }
 
