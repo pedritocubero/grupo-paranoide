@@ -4,6 +4,7 @@ import path from 'path'
 import React from 'react'
 import { stripTrailingPeriod } from '@/lib/citations'
 import { hyphenateEs } from '@/lib/hyphenation-es'
+import { pdfTextColor } from '@/lib/text-color'
 
 // Evita que una palabra del título de portadilla de capítulo se corte con un guion al final de línea.
 const noHyphenation = (word: string) => [word]
@@ -104,13 +105,14 @@ const styles = StyleSheet.create({
 // se pintan con ella y el resto del texto sigue con la fuente normal.
 const SYMBOL_CHAR = /[←-⇿∀-⋿]/
 
-function renderTextWithSymbols(text: string, key: string, fontFamily?: string): React.ReactNode {
+function renderTextWithSymbols(text: string, key: string, fontFamily?: string, color?: string): React.ReactNode {
+  const style = fontFamily || color ? { ...(fontFamily ? { fontFamily } : {}), ...(color ? { color } : {}) } : undefined
   if (!SYMBOL_CHAR.test(text)) {
-    return <Text key={key} style={fontFamily ? { fontFamily } : undefined}>{text}</Text>
+    return <Text key={key} style={style}>{text}</Text>
   }
   const parts = text.split(new RegExp(`(${SYMBOL_CHAR.source})`))
   return (
-    <Text key={key} style={fontFamily ? { fontFamily } : undefined}>
+    <Text key={key} style={style}>
       {parts.map((part, i) =>
         SYMBOL_CHAR.test(part) ? (
           <Text key={i} style={{ fontFamily: 'Symbols' }}>{part}</Text>
@@ -130,12 +132,13 @@ function renderInline(children: LexicalNode[]): React.ReactNode {
     if (node.type === 'text') {
       const format = (node.format as number) ?? 0
       const isBold = (format & 1) !== 0
-      const isItalic = (format & 2) !== 0
+      const { color, italic } = pdfTextColor(node.style)
+      const isItalic = (format & 2) !== 0 || italic
       let fontFamily: string | undefined
       if (isBold && isItalic) fontFamily = 'Times-BoldItalic'
       else if (isBold) fontFamily = 'Times-Bold'
       else if (isItalic) fontFamily = 'Times-Italic'
-      return renderTextWithSymbols(node.text ?? '', String(i), fontFamily)
+      return renderTextWithSymbols(node.text ?? '', String(i), fontFamily, color)
     }
     if (node.type === 'linebreak') return <Text key={i}>{'\n'}</Text>
     if (node.children?.length) return <Text key={i}>{renderInline(node.children)}</Text>
