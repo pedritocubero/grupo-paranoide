@@ -3,6 +3,7 @@ import type { SerializedEditorState } from 'lexical'
 import path from 'path'
 import React from 'react'
 import { stripTrailingPeriod } from '@/lib/citations'
+import { hyphenateEs } from '@/lib/hyphenation-es'
 
 // Evita que una palabra del título de portadilla de capítulo se corte con un guion al final de línea.
 const noHyphenation = (word: string) => [word]
@@ -121,6 +122,9 @@ function renderTextWithSymbols(text: string, key: string, fontFamily?: string): 
   )
 }
 
+// Separación de palabras del texto del libro: reglas del español (el PDF usa las del inglés por defecto).
+let bodyHyphenation: ((word: string) => string[]) | undefined
+
 function renderInline(children: LexicalNode[]): React.ReactNode {
   return children.map((node, i) => {
     if (node.type === 'text') {
@@ -144,15 +148,15 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
     case 'paragraph': {
       const children = node.children ?? []
       if (!children.length) return <View key={key} style={{ marginBottom: 8 }} />
-      return <View key={key} style={{ ...styles.paragraph, ...extraStyle }}><Text>{renderInline(children)}</Text></View>
+      return <View key={key} style={{ ...styles.paragraph, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(children)}</Text></View>
     }
     case 'heading': {
       const tag = (node.tag as string) ?? 'h2'
       const style = tag === 'h2' ? styles.heading2 : tag === 'h3' ? styles.heading3 : styles.heading4
-      return <View key={key} style={{ ...style, ...extraStyle }}><Text>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...style, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     }
     case 'quote':
-      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     case 'list': {
       const isOrdered = node.listType === 'number'
       return (
@@ -160,7 +164,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
           {(node.children ?? []).map((item, i) => (
             <View key={i} style={styles.listItem}>
               <Text style={styles.listBullet}>{isOrdered ? `${i + 1}.` : '•'}</Text>
-              <Text style={styles.listContent}>{renderInline(item.children ?? [])}</Text>
+              <Text style={styles.listContent} hyphenationCallback={bodyHyphenation}>{renderInline(item.children ?? [])}</Text>
             </View>
           ))}
         </View>
@@ -184,6 +188,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
                     }}
                   >
                     <Text
+                      hyphenationCallback={bodyHyphenation}
                       style={{
                         ...(isHeader ? styles.tableCellHeaderText : styles.tableCellText),
                         ...(ci === 0 ? styles.tableCellTextFirst : {}),
@@ -201,7 +206,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
     }
     default:
       if (node.children?.length) {
-        return <View key={key} style={styles.paragraph}><Text>{renderInline(node.children)}</Text></View>
+        return <View key={key} style={styles.paragraph}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children)}</Text></View>
       }
       return null
   }
@@ -215,7 +220,9 @@ function asQuoteIfCitation(node: LexicalNode): LexicalNode {
   return /^[“"«]/.test(text) && /\(\d+([,–-]\s*\d+)*\)\.?$/.test(text) ? { ...node, type: 'quote' } : node
 }
 
-function renderLexical(content: SerializedEditorState): React.ReactNode[] {
+function renderLexical(content: SerializedEditorState, locale: string): React.ReactNode[] {
+  // Se fija aquí, de forma síncrona, justo antes de crear los textos que la leen.
+  bodyHyphenation = locale === 'es' ? hyphenateEs : undefined
   const root = content.root as unknown as LexicalNode
   const children = (root.children ?? []).map(asQuoteIfCitation)
   return children.map((child, i) => {
@@ -283,7 +290,7 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
           {/* Contenido del capítulo */}
           <Page size="A4" style={styles.page}>
             {chapter.sections.map((section) =>
-              section.content ? renderLexical(section.content) : null,
+              section.content ? renderLexical(section.content, locale) : null,
             )}
             <Text style={styles.footer} fixed>
               {bookTitle} · Pedro Cubero Bros · elgrupoparanoide.com
