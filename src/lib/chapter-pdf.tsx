@@ -3,6 +3,7 @@ import type { SerializedEditorState } from 'lexical'
 import path from 'path'
 import React from 'react'
 import { extractHeadings } from '@/lib/headings'
+import { stripTrailingPeriod } from '@/lib/citations'
 
 // Evita que una palabra del título de portada se corte con un guion al final de línea.
 const noHyphenation = (word: string) => [word]
@@ -392,7 +393,12 @@ function asQuoteIfCitation(node: LexicalNode): LexicalNode {
 function renderLexical(content: SerializedEditorState): React.ReactNode[] {
   const root = content.root as unknown as LexicalNode
   const children = (root.children ?? []).map(asQuoteIfCitation)
-  return children.map((child, i) => renderBlock(child, String(i), blockExtraStyle(child, children[i + 1])))
+  return children.map((child, i) => {
+    const next = children[i + 1]
+    // Igual que la web: sin punto final en epígrafes de cita ni en títulos h2-h4.
+    const dropPeriod = isQuoteLabel(child, next) || (child.type === 'heading' && ['h2', 'h3', 'h4'].includes(child.tag as string))
+    return renderBlock(dropPeriod ? stripTrailingPeriod(child) : child, String(i), blockExtraStyle(child, next))
+  })
 }
 
 // Epígrafe de cita: párrafo corto (p.ej. "Paranoia") justo antes de una cita.

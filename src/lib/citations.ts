@@ -12,3 +12,22 @@ export function quoteCitationParagraphs(content: SerializedEditorState): Seriali
   })
   return { ...content, root: { ...content.root, children } } as SerializedEditorState
 }
+
+// Epígrafe pegado a una cita ("Freud. Carácter anal."): la web le quita el punto final
+// (ChapterPageClient); los PDF usan esto para que se vea igual.
+export function stripTrailingPeriod<T extends { children?: Array<Record<string, any>> }>(node: T): T {
+  const children = [...(node.children ?? [])]
+  for (let i = children.length - 1; i >= 0; i--) {
+    const child = children[i]
+    if (typeof child.text === 'string') {
+      if (child.text.length === 0) continue
+      children[i] = { ...child, text: child.text.replace(/\.$/, '') }
+      break
+    }
+    if (child.children) {
+      children[i] = stripTrailingPeriod(child)
+      break
+    }
+  }
+  return { ...node, children }
+}
