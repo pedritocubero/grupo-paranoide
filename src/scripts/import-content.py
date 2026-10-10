@@ -36,7 +36,23 @@ HEADING_MAX_LEN = 100
 
 # ── Helpers Lexical JSON ─────────────────────────────────────────────────────
 
+# Incisos escritos con guiones en el .docx ("texto -inciso- texto") → rayas.
+# Solo se tocan guiones de apertura precedidos de espacio y pegados a la palabra
+# siguiente (no los diálogos "- Hola" ni palabras compuestas como "ex-interno"),
+# y se descartan los pares que parecen rotos (el inciso acaba en preposición).
+INCISO_RE = re.compile(r'(?<=\s)-(?=[^\s-])([^\n]{1,400}?)(?<=[^\s-])-(?=[\s.,;:)”"’]|$)')
+INCISO_ROTO_RE = re.compile(r'(?<!\w)(?:de|del|la|el|y|a|en|que|con|los|las)$', re.IGNORECASE)
+
+def guiones_a_rayas(text: str) -> str:
+    def cambia(m):
+        inner = m.group(1)
+        if INCISO_ROTO_RE.search(inner):
+            return m.group(0)
+        return f"\u2014{inner}\u2014"
+    return INCISO_RE.sub(cambia, text)
+
 def text_node(text: str, bold=False, italic=False, underline=False, color=None) -> dict:
+    text = guiones_a_rayas(text)
     # Lexical format bitmask: 1=bold, 2=italic, 8=underline
     fmt = 0
     if bold:     fmt |= 1
@@ -513,9 +529,10 @@ def section_to_lexical(paras: list) -> dict:
 
         inline = para_to_inline_nodes(para)
         quote_starters = ('"', '\u201c', '\u201d', '«', '[', '—', '-')
-        # Un paréntesis inicial solo marca cita si es una elisión "(…)", un
-        # "(sic)" o una enumeración "(a)"; si no, es un comentario del autor.
-        paren_quote = re.match(r'\((…|\.{2,3})\)|\(sic\b|\([a-z]\)', text, re.IGNORECASE)
+        # Un paréntesis inicial solo marca cita si es una enumeración "(a)" dentro
+        # de una cita. "(…)" o "(sic)" al principio de un bloque significan que el
+        # autor retoma su propio texto tras una cita, así que NO son cita.
+        paren_quote = re.match(r'\([a-z]\)', text, re.IGNORECASE)
 
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
