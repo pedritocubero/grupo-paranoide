@@ -418,6 +418,13 @@ function isQuoteLabel(node: LexicalNode, next?: LexicalNode): boolean {
   return text.length > 0 && text.length <= 80 && !/[:,]$/.test(text)
 }
 
+// Cita completa: acaba con su referencia "(n)." o con comillas de cierre. Si no, la
+// siguiente cita es continuación (mismo texto en varios párrafos) y va pegada.
+function isCompleteQuote(node: LexicalNode): boolean {
+  const text = (node.children ?? []).map((c) => (c.text as string) ?? '').join('').trim()
+  return /(\(\d+([,–-]\s*\d+)*\)\.?|[”"»])$/.test(text)
+}
+
 // Epígrafe (h4) justo antes de una cita: se alinea con su sangría y se pega a ella.
 // Párrafos consecutivos de una misma cita larga: sin hueco extra entre ellos.
 function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, unknown> | undefined {
@@ -425,7 +432,8 @@ function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, 
     return { marginLeft: 24, marginBottom: 0 }
   }
   if (node.type === 'quote' && next?.type === 'quote') {
-    return { marginBottom: 0 }
+    // Citas independientes (la primera ya está completa): hueco entre ellas.
+    return { marginBottom: isCompleteQuote(node) ? 10 : 0 }
   }
   return undefined
 }

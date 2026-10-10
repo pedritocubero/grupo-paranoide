@@ -78,6 +78,10 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
       if (lastText?.textContent?.endsWith('.')) lastText.textContent = lastText.textContent.slice(0, -1)
     }
     el.querySelectorAll('blockquote').forEach((bq) => {
+      // Cita completa (acaba en "(n)." o comillas de cierre) seguida de otra cita: son
+      // citas independientes y llevan un hueco; si no, la siguiente es continuación.
+      const complete = /(\(\d+([,–-]\s*\d+)*\)\.?|[”"»])$/.test((bq.textContent ?? '').trim())
+      bq.classList.toggle('quote-end', complete && bq.nextElementSibling?.tagName === 'BLOCKQUOTE')
       const prev = bq.previousElementSibling
       if (prev?.tagName !== 'P') return
       stripTrailingPeriod(prev)
