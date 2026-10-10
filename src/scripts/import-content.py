@@ -512,11 +512,14 @@ def section_to_lexical(paras: list) -> dict:
             continue
 
         inline = para_to_inline_nodes(para)
-        quote_starters = ('"', '\u201c', '\u201d', '«', '[', '(', '—', '-')
+        quote_starters = ('"', '\u201c', '\u201d', '«', '[', '—', '-')
+        # Un paréntesis inicial solo marca cita si es una elisión "(…)", un
+        # "(sic)" o una enumeración "(a)"; si no, es un comentario del autor.
+        paren_quote = re.match(r'\((…|\.{2,3})\)|\(sic\b|\([a-z]\)', text, re.IGNORECASE)
 
         if para.style.name == "List Paragraph" and indented:
             nodes.append(paragraph_node(inline, indent=1))
-        elif text.startswith(quote_starters):
+        elif text.startswith(quote_starters) or paren_quote:
             # Empieza por comilla → cita, independiente del tamaño/sangría
             nodes.append(quote_node(inline))
         elif is_quote_candidate:
