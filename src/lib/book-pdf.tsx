@@ -89,12 +89,12 @@ const styles = StyleSheet.create({
   tableCellTextFirst: { textAlign: 'left' },
   tableCellHeader: { backgroundColor: '#f5f5f4' },
   tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, lineHeight: 1.3, textAlign: 'center' },
-  footer: {
-    position: 'absolute', bottom: 40, left: 72, right: 72,
+  header: {
+    position: 'absolute', top: 36, left: 72, right: 72,
     textAlign: 'center', fontFamily: 'Helvetica', fontSize: 7, color: '#bbbbbb',
   },
   pageNumber: {
-    position: 'absolute', bottom: 24, left: 72, right: 72,
+    position: 'absolute', top: 800, left: 72, right: 72,
     textAlign: 'center', fontFamily: 'Helvetica', fontSize: 8, color: '#999999',
   },
 })
@@ -283,11 +283,9 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
                 <Text style={styles.chapterSubtitle}>{chapter.subtitle}</Text>
               ) : null}
             </View>
-            <Text
-              style={styles.pageNumber}
-              fixed
-              render={({ pageNumber }) => String(pageNumber)}
-            />
+            <View style={styles.pageNumber} fixed>
+<Text render={({ pageNumber }) => String(pageNumber)} />
+</View>
           </Page>
 
           {/* Contenido del capítulo */}
@@ -295,14 +293,12 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
             {chapter.sections.map((section) =>
               section.content ? renderLexical(section.content, locale) : null,
             )}
-            <Text style={styles.footer} fixed>
+            <Text style={styles.header} fixed>
               {bookTitle} · Pedro Cubero Bros · elgrupoparanoide.com
             </Text>
-            <Text
-              style={styles.pageNumber}
-              fixed
-              render={({ pageNumber }) => String(pageNumber)}
-            />
+            <View style={styles.pageNumber} fixed>
+<Text render={({ pageNumber }) => String(pageNumber)} />
+</View>
           </Page>
         </React.Fragment>
       ))}

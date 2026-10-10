@@ -210,9 +210,9 @@ const styles = StyleSheet.create({
     lineHeight: 1.3,
     textAlign: 'center',
   },
-  footer: {
+  header: {
     position: 'absolute',
-    bottom: 40,
+    top: 36,
     left: 72,
     right: 72,
     textAlign: 'center',
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     position: 'absolute',
-    bottom: 24,
+    top: 800,
     left: 72,
     right: 72,
     textAlign: 'center',
@@ -500,11 +500,9 @@ export function ChapterDocument({
               {h.text}
             </Text>
           ))}
-          <Text
-            style={styles.pageNumber}
-            fixed
-            render={({ pageNumber }) => String(pageNumber)}
-          />
+          <View style={styles.pageNumber} fixed>
+<Text render={({ pageNumber }) => String(pageNumber)} />
+</View>
         </Page>
       )}
 
@@ -530,14 +528,12 @@ export function ChapterDocument({
             ))}
           </View>
         )}
-        <Text style={styles.footer} fixed>
+        <Text style={styles.header} fixed>
           elgrupoparanoide.com
         </Text>
-        <Text
-          style={styles.pageNumber}
-          fixed
-          render={({ pageNumber }) => String(pageNumber)}
-        />
+        <View style={styles.pageNumber} fixed>
+<Text render={({ pageNumber }) => String(pageNumber)} />
+</View>
       </Page>
     </Document>
   )
