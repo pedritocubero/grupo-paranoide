@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
   },
   page: {
     paddingTop: 72, paddingBottom: 90, paddingLeft: 72, paddingRight: 72,
-    fontFamily: 'Times-Roman', fontSize: 11, lineHeight: 1.7, color: '#1a1a1a',
+    fontFamily: 'Times-Roman', fontSize: 12.5, lineHeight: 1.6, color: '#1a1a1a',
   },
   paragraph: { marginBottom: 8 },
-  heading2: { fontFamily: 'Times-Bold', fontSize: 14, marginTop: 22, marginBottom: 8, lineHeight: 1.3 },
-  heading3: { fontFamily: 'Times-Bold', fontSize: 12, marginTop: 16, marginBottom: 6, lineHeight: 1.3 },
-  heading4: { fontFamily: 'Times-Italic', fontSize: 11, marginTop: 12, marginBottom: 8, lineHeight: 1.3 },
+  heading2: { fontFamily: 'Times-Bold', fontSize: 16.5, marginTop: 22, marginBottom: 8, lineHeight: 1.3 },
+  heading3: { fontFamily: 'Times-Bold', fontSize: 14, marginTop: 16, marginBottom: 6, lineHeight: 1.3 },
+  heading4: { fontFamily: 'Times-Italic', fontSize: 12.5, marginTop: 12, marginBottom: 8, lineHeight: 1.3 },
   quote: { marginLeft: 24, marginRight: 24, marginBottom: 8 },
   listView: { marginBottom: 8 },
   listItem: { flexDirection: 'row', marginBottom: 4 },
@@ -85,17 +85,17 @@ const styles = StyleSheet.create({
     paddingVertical: 3, paddingHorizontal: 4,
   },
   tableCellFirst: { flex: 4 },
-  tableCellText: { fontFamily: 'Helvetica', fontSize: 6.5, lineHeight: 1.3, textAlign: 'center' },
+  tableCellText: { fontFamily: 'Helvetica', fontSize: 7.5, lineHeight: 1.3, textAlign: 'center' },
   tableCellTextFirst: { textAlign: 'left' },
   tableCellHeader: { backgroundColor: '#f5f5f4' },
-  tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, lineHeight: 1.3, textAlign: 'center' },
+  tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, lineHeight: 1.3, textAlign: 'center' },
   header: {
     position: 'absolute', top: 36, left: 72, right: 72,
-    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 7, color: '#bbbbbb',
+    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 8, color: '#bbbbbb',
   },
   pageNumber: {
     position: 'absolute', top: 800, left: 72, right: 72,
-    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 8, color: '#999999',
+    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 9, color: '#999999',
   },
 })
 

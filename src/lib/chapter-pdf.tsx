@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
     paddingLeft: 72,
     paddingRight: 72,
     fontFamily: 'Times-Roman',
-    fontSize: 11,
-    lineHeight: 1.7,
+    fontSize: 12.5,
+    lineHeight: 1.6,
     color: '#1a1a1a',
   },
   coverPage: {
@@ -129,28 +129,28 @@ const styles = StyleSheet.create({
   },
   heading1: {
     fontFamily: 'Times-Bold',
-    fontSize: 18,
+    fontSize: 21,
     marginTop: 28,
     marginBottom: 12,
     lineHeight: 1.3,
   },
   heading2: {
     fontFamily: 'Times-Bold',
-    fontSize: 14,
+    fontSize: 16.5,
     marginTop: 22,
     marginBottom: 8,
     lineHeight: 1.3,
   },
   heading3: {
     fontFamily: 'Times-Bold',
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 16,
     marginBottom: 6,
     lineHeight: 1.3,
   },
   heading4: {
     fontFamily: 'Times-Italic',
-    fontSize: 11,
+    fontSize: 12.5,
     marginTop: 12,
     marginBottom: 8,
     lineHeight: 1.3,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   tableCellText: {
     fontFamily: 'Helvetica',
-    fontSize: 6.5,
+    fontSize: 7.5,
     lineHeight: 1.3,
     textAlign: 'center',
   },
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   tableCellHeaderText: {
     fontFamily: 'Helvetica-Bold',
-    fontSize: 6.5,
+    fontSize: 7.5,
     lineHeight: 1.3,
     textAlign: 'center',
   },
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     right: 72,
     textAlign: 'center',
     fontFamily: 'Helvetica',
-    fontSize: 7,
+    fontSize: 8,
     color: '#bbbbbb',
   },
   pageNumber: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     right: 72,
     textAlign: 'center',
     fontFamily: 'Helvetica',
-    fontSize: 8,
+    fontSize: 9,
     color: '#999999',
   },
 })
@@ -518,10 +518,10 @@ export function ChapterDocument({
             </Text>
             {references.map((ref) => (
               <View key={ref.num} style={{ flexDirection: 'row', marginBottom: 6 }}>
-                <Text style={{ fontFamily: 'Times-Roman', fontSize: 9, color: '#555555', width: 20, flexShrink: 0 }}>
+                <Text style={{ fontFamily: 'Times-Roman', fontSize: 10.5, color: '#555555', width: 24, flexShrink: 0 }}>
                   {ref.num}.
                 </Text>
-                <Text style={{ fontFamily: 'Times-Roman', fontSize: 9, color: '#555555', flex: 1, lineHeight: 1.5 }}>
+                <Text style={{ fontFamily: 'Times-Roman', fontSize: 10.5, color: '#555555', flex: 1, lineHeight: 1.5 }}>
                   {ref.text}
                 </Text>
               </View>
