@@ -84,10 +84,12 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
       bq.classList.toggle('quote-end', complete && bq.nextElementSibling?.tagName === 'BLOCKQUOTE')
       const prev = bq.previousElementSibling
       if (prev?.tagName !== 'P') return
-      stripTrailingPeriod(prev)
       // Etiqueta corta (p.ej. "Personalidad anal-erótica. Ernest Jones.") pegada a su cita:
       // mismo umbral de 80 caracteres que usa el importador para distinguir etiqueta de cita.
-      prev.classList.toggle('quote-label', (prev.textContent ?? '').trim().length <= 80)
+      // Solo a las etiquetas se les quita el punto final; un párrafo largo conserva el suyo.
+      const isLabel = (prev.textContent ?? '').trim().length <= 80
+      if (isLabel) stripTrailingPeriod(prev)
+      prev.classList.toggle('quote-label', isLabel)
     })
     el.querySelectorAll('h2, h3, h4').forEach((heading) => {
       stripTrailingPeriod(heading)
