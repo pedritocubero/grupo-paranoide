@@ -170,6 +170,12 @@ body {
   overflow-wrap: break-word;
 }
 
+/* El párrafo dentro de cada celda no debe llevar el margen inferior del
+   texto normal: empujaría el "+" hacia arriba en vez de dejarlo centrado */
+.prose .lexical-table-cell p {
+  margin: 0;
+}
+
 /* La primera columna (el rasgo descrito) necesita mucho más espacio que
    el resto (que solo llevan una etiqueta corta o un "+"), y se lee mejor
    alineada a la izquierda en vez de centrada */

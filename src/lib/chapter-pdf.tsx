@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     flex: 1,
+    justifyContent: 'center',
     borderStyle: 'solid',
     borderWidth: 0.5,
     borderColor: '#cccccc',
@@ -191,6 +192,7 @@ const styles = StyleSheet.create({
   },
   tableCellFirst: {
     flex: 4,
+    justifyContent: 'flex-start',
   },
   tableCellText: {
     fontFamily: 'Helvetica',

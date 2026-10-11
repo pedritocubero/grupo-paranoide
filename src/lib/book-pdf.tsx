@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
   table: { marginTop: 8, marginBottom: 12 },
   tableRow: { flexDirection: 'row' },
   tableCell: {
-    flex: 1, borderStyle: 'solid', borderWidth: 0.5, borderColor: '#cccccc',
+    flex: 1, justifyContent: 'center', borderStyle: 'solid', borderWidth: 0.5, borderColor: '#cccccc',
     paddingVertical: 3, paddingHorizontal: 4,
   },
-  tableCellFirst: { flex: 4 },
+  tableCellFirst: { flex: 4, justifyContent: 'flex-start' },
   tableCellText: { fontFamily: 'Helvetica', fontSize: 7.5, lineHeight: 1.3, textAlign: 'center' },
   tableCellTextFirst: { textAlign: 'left' },
   tableCellHeader: { backgroundColor: '#f5f5f4' },
