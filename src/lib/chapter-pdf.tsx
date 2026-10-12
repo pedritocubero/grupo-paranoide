@@ -318,7 +318,7 @@ function renderBlock(
       const style =
         tag === 'h1' ? styles.heading1 : tag === 'h2' ? styles.heading2 : tag === 'h3' ? styles.heading3 : styles.heading4
       return (
-        <View key={key} style={{ ...style, ...extraStyle }}>
+        <View key={key} style={{ ...style, ...extraStyle }} minPresenceAhead={60}>
           <Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text>
         </View>
       )

@@ -156,7 +156,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
     case 'heading': {
       const tag = (node.tag as string) ?? 'h2'
       const style = tag === 'h2' ? styles.heading2 : tag === 'h3' ? styles.heading3 : styles.heading4
-      return <View key={key} style={{ ...style, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...style, ...extraStyle }} minPresenceAhead={60}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     }
     case 'quote':
       return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
