@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
   },
   chapterNum: {
-    fontFamily: 'Helvetica', fontSize: 8, color: '#bbbbbb', marginBottom: 10, textAlign: 'center',
+    fontFamily: 'Helvetica', fontSize: 10, color: '#666666', marginBottom: 10, textAlign: 'center',
   },
   chapterTitle: {
     fontFamily: 'Times-Bold', fontSize: 24, textAlign: 'center', color: '#111111',
@@ -91,11 +91,11 @@ const styles = StyleSheet.create({
   tableCellHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, lineHeight: 1.3, textAlign: 'center' },
   header: {
     position: 'absolute', top: 36, left: 72, right: 72,
-    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 8, color: '#bbbbbb',
+    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 10, color: '#666666',
   },
   pageNumber: {
     position: 'absolute', top: 800, left: 72, right: 72,
-    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 9, color: '#999999',
+    textAlign: 'center', fontFamily: 'Helvetica', fontSize: 11, color: '#555555',
   },
 })
 

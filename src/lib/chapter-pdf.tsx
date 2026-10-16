@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
   },
   coverChapterNum: {
     fontFamily: 'Helvetica',
-    fontSize: 8,
-    color: '#bbbbbb',
+    fontSize: 10,
+    color: '#666666',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
     right: 72,
     textAlign: 'center',
     fontFamily: 'Helvetica',
-    fontSize: 8,
-    color: '#bbbbbb',
+    fontSize: 10,
+    color: '#666666',
   },
   pageNumber: {
     position: 'absolute',
@@ -229,8 +229,8 @@ const styles = StyleSheet.create({
     right: 72,
     textAlign: 'center',
     fontFamily: 'Helvetica',
-    fontSize: 9,
-    color: '#999999',
+    fontSize: 11,
+    color: '#555555',
   },
 })
 
