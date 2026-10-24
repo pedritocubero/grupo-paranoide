@@ -19,6 +19,15 @@ type Section = {
 export async function POST(req: Request, { params }: Params) {
   const { id } = await params
 
+  // Only a logged-in admin may trigger a translation: every call spends
+  // Anthropic API credit. The admin buttons send the session cookie
+  // automatically (same-origin fetch).
+  const payload = await getPayloadClient()
+  const { user } = await payload.auth({ headers: req.headers })
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   // Optional cap on how many sections to translate in this invocation, so a
   // chapter that's too big to finish inside the platform's function time
   // limit can be translated across several calls instead of one.
@@ -29,8 +38,6 @@ export async function POST(req: Request, { params }: Params) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
   }
-
-  const payload = await getPayloadClient()
 
   const [chapterEs, chapterEn] = await Promise.all([
     payload.findByID({ collection: 'chapters', id, locale: 'es' }),
