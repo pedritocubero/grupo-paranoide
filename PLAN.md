@@ -15,7 +15,7 @@ Migrar el libro "El grupo paranoide" de Pedro Cubero Bros (24 capítulos, actual
 
 - **Framework:** Next.js 15 con App Router (TypeScript).
 - **CMS:** Payload CMS 3 embebido en el mismo proyecto Next.js (no servicio aparte).
-- **Base de datos:** PostgreSQL en Supabase (tier gratis). Usar la connection string de **Transaction pooler** (puerto 6543), obligatorio para entornos serverless como Vercel.
+- **Base de datos:** PostgreSQL en Neon, integración del Marketplace de Vercel (plan Launch, de pago por uso). Se gestiona desde Vercel → Storage; no tiene login propio. (Al principio se planeó Supabase; ya no se usa.)
 - **Editor:** TipTap (integrado en Payload).
 - **Traducción:** API de Anthropic, modelo `claude-sonnet-4-6`.
 - **PDFs:** `@react-pdf/renderer`, generación on-the-fly en un route handler.
@@ -107,10 +107,10 @@ El glosario se construye dinámicamente desde la collection `GlossaryTerms`.
 
 Cada sesión ≈ 1-2 horas. Al final de cada una: commit en Git, deploy a Vercel, y verificación de que funciona.
 
-### Sesión 1 — Andamiaje (hoy)
+### Sesión 1 — Andamiaje ✅
 - `create-next-app` con TypeScript.
 - Instalar Payload 3 embebido.
-- Conectar a Supabase Postgres (pooled connection, puerto 6543).
+- Conectar a Postgres (hoy Neon, vía la integración de Vercel).
 - Configurar localización `['es', 'en']`, default `es`.
 - Collection `Users` + primer usuario admin (el autor).
 - Collection `Chapters` con los campos descritos arriba.
@@ -118,13 +118,13 @@ Cada sesión ≈ 1-2 horas. Al final de cada una: commit en Git, deploy a Vercel
 - Deploy a Vercel con variables de entorno.
 - **Criterio de éxito:** el autor puede entrar al admin en `/admin`, ver los 24 capítulos listados, editar el título de uno y ver que se guarda.
 
-### Sesión 2 — Importación del contenido existente
+### Sesión 2 — Importación del contenido existente ✅
 - Leer los Google Docs actuales de los capítulos y convertirlos a markdown/richText.
 - Script que parte cada capítulo en secciones (por `##` o por párrafos según longitud) y las importa al campo `sections` de cada capítulo en español.
 - Revisión manual en el admin.
 - **Criterio de éxito:** los 24 capítulos están en el admin con su contenido real en español, bien estructurado.
 
-### Sesión 3 — Web pública de lectura
+### Sesión 3 — Web pública de lectura ✅
 - Páginas `/[locale]/capitulo/[slug]` que renderizan el capítulo desde la base de datos.
 - Página índice `/[locale]/capitulos`.
 - Selector de idioma (aunque el inglés todavía esté vacío).
@@ -139,19 +139,19 @@ Cada sesión ≈ 1-2 horas. Al final de cada una: commit en Git, deploy a Vercel
 - **Pendiente por el autor:** añadir `ANTHROPIC_API_KEY` real en `.env.local` y en Vercel Preview.
 - **Criterio de éxito:** el autor pulsa un botón y el capítulo aparece traducido al inglés en la pestaña correspondiente del admin.
 
-### Sesión 5 — PDFs
+### Sesión 5 — PDFs ✅
 - Route handler `/[locale]/capitulo/[slug]/pdf` que genera PDF con `@react-pdf/renderer`.
 - Estilos de libro (tipografía, portada por capítulo con título + autor + "elgrupoparanoide.com").
 - **Criterio de éxito:** se descarga un PDF con el capítulo en el idioma elegido, bien maquetado.
 
-### Sesión 6 — Páginas auxiliares + pulido
+### Sesión 6 — Páginas auxiliares + pulido ✅ (la página «Depresión» queda aparcada por decisión del autor; los tests de extremo a extremo se descartaron)
 - Migrar `/sobre-mi`, `/obstinaciones`, `/depresion` desde Squarespace (contenido estático, collection `Pages`).
 - Landing `/`.
 - Selector de idioma final, menú, footer.
 - Tests de extremo a extremo del flujo completo.
 - **Criterio de éxito:** la web está lista para reemplazar a Squarespace.
 
-### Sesión 7 — Corte y DNS
+### Sesión 7 — Corte y DNS ✅ (2026-09-20)
 - Añadir `elgrupoparanoide.com` en Vercel, que genera registros DNS (`A` para apex y `CNAME` para `www`).
 - Configurar esos registros en Namecheap → Advanced DNS del dominio.
 - Verificar SSL (automático en Vercel).
@@ -160,7 +160,7 @@ Cada sesión ≈ 1-2 horas. Al final de cada una: commit en Git, deploy a Vercel
 
 ## Consideraciones
 
-- **Coste.** Hosting Vercel y BD Neon: gratis en estos volúmenes. API de Claude: traducir los 24 capítulos completos la primera vez ≈ 2-5 €. Retraducciones posteriores son céntimos. Dominio ya lo tenéis.
-- **Backups.** Supabase hace backups automáticos diarios en el tier gratis (retención 7 días). Además, un dump semanal a `.sql` se puede automatizar con GitHub Actions si queremos paranoia extra.
+- **Coste (actualizado oct. 2026).** Vercel Pro 20 $/mes fijos y Neon Launch ≈ 12 $/mes por uso (los planes gratuitos se quedaron cortos). API de Claude: traducir los 24 capítulos completos la primera vez ≈ 2-5 €. Retraducciones posteriores son céntimos. Dominio ya lo tenéis.
+- **Backups.** El repo se guarda solo cada domingo (commit + push). La base de datos no: se vuelca a mano a un JSON con `volcar-bd.cjs` (carpeta `~/Documents/copias-grupo-paranoide/`), aproximadamente cada dos semanas.
 - **Qué NO construimos ahora (v2):** comentarios de lectores, búsqueda full-text, analytics avanzado, versionado de capítulos (Payload ya trae drafts y autosave).
 - **Decisión pendiente:** si el contenido vive en la base de datos o en archivos Markdown en Git. Vamos con base de datos — más simple para el autor, y Payload ya da versionado y drafts sin que tengamos que construirlo.
