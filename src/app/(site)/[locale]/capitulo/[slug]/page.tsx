@@ -3,7 +3,12 @@ import ChapterPageClient from '@/components/ChapterPageClient'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+
+// Lista vacía: no se prepara nada al compilar; cada página se guarda en caché al primer acceso.
+export function generateStaticParams() {
+  return []
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>

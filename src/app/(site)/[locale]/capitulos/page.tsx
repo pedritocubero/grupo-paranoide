@@ -2,7 +2,12 @@ import { getPayloadClient } from '@/lib/payload'
 import { ChapterIndexList } from '@/components/ChapterIndexList'
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+
+// Lista vacía: no se prepara nada al compilar; cada página se guarda en caché al primer acceso.
+export function generateStaticParams() {
+  return []
+}
 
 export async function generateMetadata({
   params,

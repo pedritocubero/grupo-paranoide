@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { refreshPublicPages } from '@/lib/revalidate'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -7,6 +8,14 @@ export const Pages: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug'],
+  },
+  hooks: {
+    afterChange: [
+      ({ doc }) => {
+        refreshPublicPages()
+        return doc
+      },
+    ],
   },
   fields: [
     {

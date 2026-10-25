@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { lexicalEditor, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { BlueTextFeature } from '@/lib/lexical/BlueTextFeature'
+import { refreshPublicPages } from '@/lib/revalidate'
 import crypto from 'crypto'
 
 export const Chapters: CollectionConfig = {
@@ -12,6 +13,10 @@ export const Chapters: CollectionConfig = {
   },
   hooks: {
     afterChange: [
+      ({ doc }) => {
+        refreshPublicPages()
+        return doc
+      },
       async ({ doc, req }) => {
         // Prevent re-entry from the nested EN update below
         if ((req.context as any)?.syncingStaleToEn) return doc
