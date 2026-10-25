@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale: locale as 'es' | 'en',
     where: { slug: { equals: slug } },
     limit: 1,
+    select: { title: true, part: true },
   })
   const chapter = docs[0]
   if (!chapter) return {}
@@ -58,6 +59,7 @@ export default async function CapituloPage({ params }: Props) {
       where: { and: [{ order: { equals: order - 1 } }, { part: { in: bookParts } }] },
       limit: 1,
       depth: 0,
+      select: { slug: true, title: true, order: true },
     }),
     payload.find({
       collection: 'chapters',
@@ -65,6 +67,7 @@ export default async function CapituloPage({ params }: Props) {
       where: { and: [{ order: { equals: order + 1 } }, { part: { in: bookParts } }] },
       limit: 1,
       depth: 0,
+      select: { slug: true, title: true, order: true },
     }),
   ])
 

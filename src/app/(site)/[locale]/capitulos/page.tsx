@@ -34,6 +34,7 @@ export default async function CapitulosPage({ params }: Props) {
     locale: locale as 'es' | 'en',
     sort: 'order',
     limit: 100,
+    select: { slug: true, title: true, subtitle: true, order: true, part: true },
   })
 
   const byPart = (['I', 'II', 'III'] as const).map((part) => ({

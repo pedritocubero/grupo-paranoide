@@ -53,6 +53,7 @@ export default async function PageRoute({ params }: Props) {
           where: { part: { equals: 'obstinaciones' } },
           sort: 'order',
           limit: 100,
+          select: { slug: true, title: true, subtitle: true, order: true },
         })
       ).docs.map((chapter) => ({
         slug: chapter.slug as string,
