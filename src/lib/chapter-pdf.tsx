@@ -3,7 +3,7 @@ import type { SerializedEditorState } from 'lexical'
 import path from 'path'
 import React from 'react'
 import { extractHeadings } from '@/lib/headings'
-import { stripTrailingPeriod } from '@/lib/citations'
+import { stripTrailingPeriod, stripQuoteMarks } from '@/lib/citations'
 import { hyphenateEs } from '@/lib/hyphenation-es'
 import { pdfTextColor } from '@/lib/text-color'
 
@@ -327,7 +327,7 @@ function renderBlock(
     case 'quote':
       return (
         <View key={key} style={{ ...styles.quote, ...extraStyle }}>
-          <Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text>
+          <Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(stripQuoteMarks(node).children ?? [])}</Text>
         </View>
       )
 

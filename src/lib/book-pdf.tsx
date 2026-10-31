@@ -2,7 +2,7 @@ import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/rendere
 import type { SerializedEditorState } from 'lexical'
 import path from 'path'
 import React from 'react'
-import { stripTrailingPeriod } from '@/lib/citations'
+import { stripTrailingPeriod, stripQuoteMarks } from '@/lib/citations'
 import { hyphenateEs } from '@/lib/hyphenation-es'
 import { pdfTextColor } from '@/lib/text-color'
 
@@ -159,7 +159,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
       return <View key={key} style={{ ...style, ...extraStyle }} minPresenceAhead={60}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     }
     case 'quote':
-      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(stripQuoteMarks(node).children ?? [])}</Text></View>
     case 'list': {
       const isOrdered = node.listType === 'number'
       return (
