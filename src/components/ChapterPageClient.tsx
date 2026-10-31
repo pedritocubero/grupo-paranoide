@@ -77,11 +77,43 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
       while ((node = walker.nextNode())) lastText = node as Text
       if (lastText?.textContent?.endsWith('.')) lastText.textContent = lastText.textContent.slice(0, -1)
     }
+    // Citas largas sin comillas (norma de la RAE): se quita la comilla de apertura y la de
+    // cierre, que puede ir antes de la referencia "(n)". El texto guardado no se toca. Las
+    // comillas interiores (anidadas) se conservan. El texto puede venir partido en varios
+    // nodos, así que se busca sobre el texto completo y se vuelve al nodo que contiene la marca.
+    const stripQuoteMarks = (bq: Element) => {
+      // Si el efecto se repite sobre el mismo DOM, no se vuelve a quitar nada.
+      if ((bq as HTMLElement).dataset.marksStripped) return
+      ;(bq as HTMLElement).dataset.marksStripped = '1'
+      const nodes: Text[] = []
+      const walker = document.createTreeWalker(bq, NodeFilter.SHOW_TEXT)
+      let n: Node | null
+      while ((n = walker.nextNode())) nodes.push(n as Text)
+      const full = nodes.map((t) => t.textContent ?? '').join('')
+      const removeAt = (pos: number) => {
+        let offset = 0
+        for (const t of nodes) {
+          const len = (t.textContent ?? '').length
+          if (pos < offset + len) {
+            const s = t.textContent ?? ''
+            t.textContent = s.slice(0, pos - offset) + s.slice(pos - offset + 1)
+            return
+          }
+          offset += len
+        }
+      }
+      // Cierre primero (posición mayor), para no desplazar el índice de la apertura.
+      const close = /[”"»](?=\s*(?:\(\d+(?:[,–-]\s*\d+)*\))?[.,;:]?\s*$)/.exec(full)
+      const open = /^\s*[“"«]/.exec(full)
+      if (close && (!open || close.index > open.index + open[0].length - 1)) removeAt(close.index)
+      if (open) removeAt(open[0].length - 1)
+    }
     el.querySelectorAll('blockquote').forEach((bq) => {
       // Cita completa (acaba en "(n)." o comillas de cierre) seguida de otra cita: son
       // citas independientes y llevan un hueco; si no, la siguiente es continuación.
       const complete = /(\(\d+([,–-]\s*\d+)*\)\.?|[”"»])$/.test((bq.textContent ?? '').trim())
       bq.classList.toggle('quote-end', complete && bq.nextElementSibling?.tagName === 'BLOCKQUOTE')
+      stripQuoteMarks(bq)
       const prev = bq.previousElementSibling
       if (prev?.tagName !== 'P') return
       // Etiqueta corta (p.ej. "Personalidad anal-erótica. Ernest Jones.") pegada a su cita:
