@@ -327,7 +327,7 @@ function renderBlock(
     case 'quote':
       return (
         <View key={key} style={{ ...styles.quote, ...extraStyle }}>
-          <Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text>
+          <Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text>
         </View>
       )
 

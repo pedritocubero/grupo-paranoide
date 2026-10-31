@@ -159,7 +159,7 @@ function renderBlock(node: LexicalNode, key: string, extraStyle?: Record<string,
       return <View key={key} style={{ ...style, ...extraStyle }} minPresenceAhead={60}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     }
     case 'quote':
-      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
+      return <View key={key} style={{ ...styles.quote, ...extraStyle }}><Text style={{ fontSize: 11 }} hyphenationCallback={bodyHyphenation}>{renderInline(node.children ?? [])}</Text></View>
     case 'list': {
       const isOrdered = node.listType === 'number'
       return (
