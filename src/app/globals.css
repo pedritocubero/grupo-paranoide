@@ -64,6 +64,13 @@ body {
   margin-bottom: 1.68rem;
 }
 
+/* Al saltar desde el índice, el título queda por debajo de la cabecera fija de la web. */
+.prose h2,
+.prose h3,
+.prose h4 {
+  scroll-margin-top: 6rem;
+}
+
 .prose strong {
   font-weight: 600;
 }
