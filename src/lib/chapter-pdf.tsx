@@ -149,9 +149,9 @@ const styles = StyleSheet.create({
     lineHeight: 1.3,
   },
   heading4: {
-    fontFamily: 'Times-Italic',
+    fontFamily: 'Times-BoldItalic',
     fontSize: 12.5,
-    marginTop: 12,
+    marginTop: 16,
     marginBottom: 8,
     lineHeight: 1.3,
   },
@@ -427,12 +427,14 @@ function isCompleteQuote(node: LexicalNode): boolean {
   return /(\(\d+([,–-]\s*\d+)*\)\.?|[”"»])$/.test(text)
 }
 
-// Epígrafe (h4) justo antes de una cita: se alinea con su sangría y se pega a ella.
+// Rótulo de cita (párrafo corto): se alinea con su sangría y se pega a ella. Un h4 NO es rótulo.
 // Párrafos consecutivos de una misma cita larga: sin hueco extra entre ellos.
 function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, unknown> | undefined {
-  if ((node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') || isQuoteLabel(node, next)) {
+  if (isQuoteLabel(node, next)) {
     return { marginLeft: 24, marginTop: 6, marginBottom: 0 }
   }
+  // h4 seguido de una cita: algo más de aire para que no quede pegado a la cita sangrada.
+  if (node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') return { marginBottom: 14 }
   if (node.type === 'quote' && next?.type === 'quote') {
     // Citas independientes (la primera ya está completa): hueco entre ellas.
     return { marginBottom: isCompleteQuote(node) ? 10 : 0 }

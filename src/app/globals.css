@@ -57,9 +57,9 @@ body {
 .prose h4 {
   font-family: var(--font-serif);
   font-size: 1.2rem;
-  font-weight: 400;
+  font-weight: 600;
   font-style: italic;
-  color: #78716c;
+  color: var(--foreground);
   margin-top: 1.8rem;
   margin-bottom: 1.68rem;
 }
