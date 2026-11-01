@@ -431,12 +431,14 @@ function isCompleteQuote(node: LexicalNode): boolean {
 // Párrafos consecutivos de una misma cita larga: sin hueco extra entre ellos.
 function blockExtraStyle(node: LexicalNode, next?: LexicalNode): Record<string, unknown> | undefined {
   if ((node.type === 'heading' && node.tag === 'h4' && next?.type === 'quote') || isQuoteLabel(node, next)) {
-    return { marginLeft: 24, marginBottom: 0 }
+    return { marginLeft: 24, marginTop: 6, marginBottom: 0 }
   }
   if (node.type === 'quote' && next?.type === 'quote') {
     // Citas independientes (la primera ya está completa): hueco entre ellas.
     return { marginBottom: isCompleteQuote(node) ? 10 : 0 }
   }
+  // Última cita antes de texto normal: más aire debajo.
+  if (node.type === 'quote') return { marginBottom: 14 }
   return undefined
 }
 
