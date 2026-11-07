@@ -5,12 +5,13 @@ import type { DocumentProps } from '@react-pdf/renderer'
 import { createElement } from 'react'
 import type { ReactElement } from 'react'
 import type { SerializedEditorState } from 'lexical'
+import { trackPdfDownload } from '@/lib/track-pdf'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ locale: string; slug: string }> },
 ) {
   const { locale, slug } = await params
@@ -56,6 +57,8 @@ export async function GET(
     console.error('[PDF] first section sample:', JSON.stringify(sections[0]?.content?.root?.children?.[0])?.slice(0, 300))
     return new Response(`PDF generation failed: ${msg}`, { status: 500 })
   }
+
+  trackPdfDownload(req, { kind: 'capitulo', slug, locale })
 
   const filename = `${slug}-${locale}.pdf`
 

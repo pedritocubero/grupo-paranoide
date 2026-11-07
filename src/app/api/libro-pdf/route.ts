@@ -5,6 +5,7 @@ import { createElement } from 'react'
 import type { ReactElement } from 'react'
 import type { SerializedEditorState } from 'lexical'
 import { BookDocument } from '@/lib/book-pdf'
+import { trackPdfDownload } from '@/lib/track-pdf'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -44,6 +45,8 @@ export async function GET(req: Request) {
     console.error('[PDF libro] renderToBuffer failed:', msg)
     return new Response(`PDF generation failed: ${msg}`, { status: 500 })
   }
+
+  trackPdfDownload(req, { kind: 'libro', locale })
 
   const filename = `el-grupo-paranoide-${locale}.pdf`
 

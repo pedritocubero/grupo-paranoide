@@ -8,6 +8,7 @@ import { Users } from './src/collections/Users'
 import { Chapters } from './src/collections/Chapters'
 import { GlossaryTerms } from './src/collections/GlossaryTerms'
 import { Pages } from './src/collections/Pages'
+import { PdfDownloads } from './src/collections/PdfDownloads'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -44,7 +45,7 @@ export default buildConfig({
       ],
     },
   },
-  collections: [Users, Chapters, GlossaryTerms, Pages],
+  collections: [Users, Chapters, GlossaryTerms, Pages, PdfDownloads],
   editor: lexicalEditor(),
   i18n: {
     translations: {
