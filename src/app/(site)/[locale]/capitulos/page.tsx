@@ -1,6 +1,7 @@
 import { getPayloadClient } from '@/lib/payload'
 import { ChapterIndexList } from '@/components/ChapterIndexList'
 import type { Metadata } from 'next'
+import { SITE_DESCRIPTION, alternatesFor, localeOf, openGraphFor } from '@/lib/seo'
 
 export const revalidate = 3600
 
@@ -15,8 +16,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+  const title =
+    locale === 'es' ? 'Capítulos — El grupo paranoide' : 'Chapters — The Paranoid Group'
   return {
-    title: locale === 'es' ? 'Capítulos — El grupo paranoide' : 'Chapters — El grupo paranoide',
+    title,
+    description: SITE_DESCRIPTION[localeOf(locale)],
+    alternates: alternatesFor(locale, '/capitulos'),
+    openGraph: openGraphFor(locale, title, '/capitulos'),
   }
 }
 

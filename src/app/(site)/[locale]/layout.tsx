@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import LangSelector from '@/components/LangSelector'
+import HtmlLang from '@/components/HtmlLang'
 
 type Props = {
   children: React.ReactNode
@@ -17,6 +18,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <>
+      <HtmlLang locale={locale} />
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-stone-100">
         <nav className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-8">
           <Link

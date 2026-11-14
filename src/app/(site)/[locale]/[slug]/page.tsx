@@ -3,6 +3,7 @@ import { ChapterIndexList } from '@/components/ChapterIndexList'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { SerializedEditorState } from 'lexical'
 import type { Metadata } from 'next'
+import { SITE_DESCRIPTION, alternatesFor, localeOf, openGraphFor } from '@/lib/seo'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
@@ -28,7 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
   const page = docs[0]
   if (!page) return {}
-  return { title: `${page.title as string} — Pedro Cubero Bros` }
+  const title = `${page.title as string} — Pedro Cubero Bros`
+  return {
+    title,
+    description: SITE_DESCRIPTION[localeOf(locale)],
+    alternates: alternatesFor(locale, `/${slug}`),
+    openGraph: openGraphFor(locale, title, `/${slug}`),
+  }
 }
 
 export default async function PageRoute({ params }: Props) {

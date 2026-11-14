@@ -1,12 +1,23 @@
 import Image from 'next/image'
 import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'El grupo paranoide — Pedro Cubero Bros',
-}
+import { SITE_DESCRIPTION, alternatesFor, localeOf, openGraphFor } from '@/lib/seo'
 
 type Props = {
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const title =
+    locale === 'en'
+      ? 'The Paranoid Group — Pedro Cubero Bros'
+      : 'El grupo paranoide — Pedro Cubero Bros'
+  return {
+    title,
+    description: SITE_DESCRIPTION[localeOf(locale)],
+    alternates: alternatesFor(locale, ''),
+    openGraph: openGraphFor(locale, title, ''),
+  }
 }
 
 export default async function LandingPage({ params }: Props) {

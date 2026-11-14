@@ -1,6 +1,7 @@
 import { getPayloadClient } from '@/lib/payload'
 import ChapterPageClient from '@/components/ChapterPageClient'
 import type { Metadata } from 'next'
+import { SITE_DESCRIPTION, alternatesFor, localeOf, openGraphFor } from '@/lib/seo'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 3600
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale: locale as 'es' | 'en',
     where: { slug: { equals: slug } },
     limit: 1,
-    select: { title: true, part: true },
+    select: { title: true, subtitle: true, part: true },
   })
   const chapter = docs[0]
   if (!chapter) return {}
@@ -31,9 +32,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? locale === 'es'
         ? 'Obstinaciones'
         : 'Obstinacies'
-      : 'El grupo paranoide'
+      : locale === 'es'
+        ? 'El grupo paranoide'
+        : 'The Paranoid Group'
+  const title = `${chapter.title as string} — ${bookName}`
+  const subtitle = (chapter.subtitle as string | null | undefined) || undefined
+  const description = subtitle ?? SITE_DESCRIPTION[localeOf(locale)]
   return {
-    title: `${chapter.title as string} — ${bookName}`,
+    title,
+    description,
+    alternates: alternatesFor(locale, `/capitulo/${slug}`),
+    openGraph: openGraphFor(locale, title, `/capitulo/${slug}`, description),
   }
 }
 

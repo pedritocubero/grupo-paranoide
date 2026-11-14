@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { SITE_URL, SITE_DESCRIPTION } from '@/lib/seo'
 import { Crimson_Pro, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import '../globals.css'
@@ -16,8 +17,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'El grupo paranoide',
-  description: 'Pedro Cubero Bros',
+  description: SITE_DESCRIPTION.es,
 }
 
 export default function SiteLayout({ children }: Readonly<{ children: React.ReactNode }>) {

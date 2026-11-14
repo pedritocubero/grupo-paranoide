@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import LangSelector from '@/components/LangSelector'
+import HtmlLang from '@/components/HtmlLang'
 
 type Props = {
   children: React.ReactNode
@@ -17,6 +18,7 @@ export default async function HeroLayout({ children, params }: Props) {
 
   return (
     <div className="min-h-screen bg-stone-900">
+      <HtmlLang locale={locale} />
       <header className="absolute top-0 left-0 right-0 z-10">
         <nav className="w-full px-10 h-16 flex items-center justify-between gap-8">
           <Link
