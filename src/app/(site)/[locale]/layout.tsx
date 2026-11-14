@@ -20,7 +20,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-stone-100">
         <nav className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-8">
           <Link
-            href="/"
+            href={`/${locale}`}
             className="font-sans text-sm text-stone-500 hover:text-foreground transition-colors shrink-0"
           >
             Pedro Cubero Bros

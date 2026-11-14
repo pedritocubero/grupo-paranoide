@@ -20,7 +20,7 @@ export default async function HeroLayout({ children, params }: Props) {
       <header className="absolute top-0 left-0 right-0 z-10">
         <nav className="w-full px-10 h-16 flex items-center justify-between gap-8">
           <Link
-            href="/"
+            href={`/${locale}`}
             className="font-serif text-2xl text-white hover:text-amber-50 transition-colors shrink-0"
           >
             Pedro Cubero Bros
