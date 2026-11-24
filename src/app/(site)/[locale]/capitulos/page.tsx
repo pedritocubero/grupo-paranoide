@@ -68,7 +68,7 @@ export default async function CapitulosPage({ params }: Props) {
       <details className="mb-16 group">
         <summary className="cursor-pointer list-none font-sans text-xs tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors mb-0 flex items-center gap-2">
           <span className="inline-block transition-transform group-open:rotate-90">▶</span>
-          {locale === 'es' ? 'Sobre «El Grupo Paranoide»' : 'About "El Grupo Paranoide"'}
+          {locale === 'es' ? 'Sobre «El Grupo Paranoide»' : 'About “El Grupo Paranoide”'}
         </summary>
         <div className="mt-6 font-serif text-base leading-relaxed text-stone-700 space-y-5">
         {locale === 'en' ? (
@@ -154,7 +154,7 @@ export default async function CapitulosPage({ params }: Props) {
             <p>El objetivo del libro es transmitir cinco simples ideas:</p>
             <ol className="list-decimal pl-6 space-y-3">
               <li>
-                Existe una &ldquo;conducta paranoide&rdquo; que no solamente se pone de manifiesto en
+                Existe una «conducta paranoide» que no solamente se pone de manifiesto en
                 varios trastornos psiquiátricos, sino que se puede activar, transitoriamente, en cualquier
                 ser humano.
               </li>
@@ -190,7 +190,7 @@ export default async function CapitulosPage({ params }: Props) {
               introduce el concepto de{' '}
               <strong>grupo de contagio paranoide</strong>, para lo cual es imprescindible referirse
               previamente a la <strong>
-                &ldquo;conducta paranoide&rdquo;
+                «conducta paranoide»
               </strong>, entendida como fenómeno individual.
             </p>
             <p>
