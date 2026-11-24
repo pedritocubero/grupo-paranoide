@@ -58,7 +58,7 @@ export function stripQuoteMarks<T extends { children?: Array<Record<string, any>
       offset += len
     }
   }
-  const close = /[”"»](?=\s*(?:\(\d+(?:[,–-]\s*\d+)*\))?[.,;:]?\s*$)/.exec(full)
+  const close = /[”"»](?=\s*[.,;:]?\s*(?:\([^()]{1,200}\))?[.,;:]?\s*$)/.exec(full)
   const open = /^\s*[“"«]/.exec(full)
   if (close && (!open || close.index > open.index + open[0].length - 1)) removeAt(close.index)
   if (open) removeAt(open[0].length - 1)

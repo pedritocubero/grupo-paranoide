@@ -103,7 +103,7 @@ export default function ChapterPageClient({ initialData, locale, prevChapter, ne
         }
       }
       // Cierre primero (posición mayor), para no desplazar el índice de la apertura.
-      const close = /[”"»](?=\s*(?:\(\d+(?:[,–-]\s*\d+)*\))?[.,;:]?\s*$)/.exec(full)
+      const close = /[”"»](?=\s*[.,;:]?\s*(?:\([^()]{1,200}\))?[.,;:]?\s*$)/.exec(full)
       const open = /^\s*[“"«]/.exec(full)
       if (close && (!open || close.index > open.index + open[0].length - 1)) removeAt(close.index)
       if (open) removeAt(open[0].length - 1)
