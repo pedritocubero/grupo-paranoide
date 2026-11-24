@@ -301,13 +301,14 @@ function renderBlock(
   node: LexicalNode,
   key: string,
   extraStyle?: Record<string, unknown>,
+  keepWithNext?: boolean,
 ): React.ReactNode {
   switch (node.type) {
     case 'paragraph': {
       const children = node.children ?? []
       if (children.length === 0) return <View key={key} style={{ marginBottom: 8 }} />
       return (
-        <View key={key} style={{ ...styles.paragraph, ...extraStyle }}>
+        <View key={key} style={{ ...styles.paragraph, ...extraStyle }} minPresenceAhead={keepWithNext ? 120 : undefined}>
           <Text hyphenationCallback={bodyHyphenation}>{renderInline(children)}</Text>
         </View>
       )
@@ -409,7 +410,7 @@ function renderLexical(content: SerializedEditorState, locale: string): React.Re
     const next = children[i + 1]
     // Igual que la web: sin punto final en epígrafes de cita ni en títulos h2-h4.
     const dropPeriod = isQuoteLabel(child, next) || (child.type === 'heading' && ['h2', 'h3', 'h4'].includes(child.tag as string))
-    return renderBlock(dropPeriod ? stripTrailingPeriod(child) : child, String(i), blockExtraStyle(child, next))
+    return renderBlock(dropPeriod ? stripTrailingPeriod(child) : child, String(i), blockExtraStyle(child, next), isQuoteLabel(child, next))
   })
 }
 
