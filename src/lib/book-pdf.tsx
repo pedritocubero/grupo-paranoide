@@ -305,8 +305,8 @@ export function BookDocument({ chapters, locale }: { chapters: ChapterData[]; lo
             {chapter.sections.map((section) =>
               section.content ? renderLexical(section.content, locale) : null,
             )}
-            <Text style={styles.header} fixed>
-              {bookTitle} · Pedro Cubero Bros · elgrupoparanoide.com
+            <Text style={styles.header} fixed hyphenationCallback={noHyphenation}>
+              {`${bookTitle}. ${chapter.title.trim().replace(/\.$/, '')}`}
             </Text>
             <View style={styles.pageNumber} fixed>
 <Text render={({ pageNumber }) => String(pageNumber)} />

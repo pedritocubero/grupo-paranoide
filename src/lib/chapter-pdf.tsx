@@ -460,8 +460,9 @@ type Chapter = {
 }
 
 const BOOK_TITLES: Record<string, { es: string; en: string }> = {
-  obstinaciones: { es: 'Obstinaciones', en: 'Obstinaciones' },
+  obstinaciones: { es: 'Obstinaciones', en: 'Obstinacies' },
 }
+const MAIN_BOOK_TITLE = { es: 'El grupo paranoide', en: 'The Paranoid Group' }
 
 export function ChapterDocument({
   chapter,
@@ -470,8 +471,10 @@ export function ChapterDocument({
   chapter: Chapter
   locale: string
 }) {
-  const bookTitle =
-    BOOK_TITLES[chapter.part as string]?.[locale as 'es' | 'en'] ?? 'El grupo paranoide'
+  const lang = locale === 'es' ? 'es' : 'en'
+  const bookTitle = (BOOK_TITLES[chapter.part as string] ?? MAIN_BOOK_TITLE)[lang]
+  // Encabezado de página: «Libro. Capítulo», sin punto final.
+  const headerText = `${bookTitle}. ${(chapter.title as string).trim().replace(/\.$/, '')}`
   const chapterLabel = locale === 'es' ? 'Capítulo' : 'Chapter'
   const tocLabel = locale === 'es' ? 'ÍNDICE' : 'CONTENTS'
   const refsLabel = locale === 'es' ? 'REFERENCIAS' : 'REFERENCES'
@@ -543,8 +546,8 @@ export function ChapterDocument({
             ))}
           </View>
         )}
-        <Text style={styles.header} fixed>
-          elgrupoparanoide.com
+        <Text style={styles.header} fixed hyphenationCallback={noHyphenation}>
+          {headerText}
         </Text>
         <View style={styles.pageNumber} fixed>
 <Text render={({ pageNumber }) => String(pageNumber)} />
